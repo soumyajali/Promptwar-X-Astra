@@ -22,6 +22,38 @@ def test_register_hashes_password_and_rejects_duplicates(client):
     assert short.status_code == 422 and set(short.json()["detail"]["fields"]) == {"name", "email", "password"}
 
 
+def test_authority_register_and_login(client):
+    # Missing authority code or title fails
+    bad = client.post("/api/auth/register", json={
+        "name": "Officer Ramesh", "email": "ramesh@civicpulse.demo", "password": "RameshPass123", "role": "authority"
+    })
+    assert bad.status_code == 422
+    assert "authority_code" in bad.json()["detail"]["fields"]
+    assert "title" in bad.json()["detail"]["fields"]
+
+    # Wrong authority code fails
+    wrong_code = client.post("/api/auth/register", json={
+        "name": "Officer Ramesh", "email": "ramesh@civicpulse.demo", "password": "RameshPass123",
+        "role": "authority", "title": "Assistant Engineer", "authority_code": "wrong"
+    })
+    assert wrong_code.status_code == 422
+
+    # Correct registration succeeds
+    ok = client.post("/api/auth/register", json={
+        "name": "Officer Ramesh", "email": "ramesh@civicpulse.demo", "password": "RameshPass123",
+        "role": "authority", "title": "Assistant Engineer", "authority_code": "civic-demo"
+    })
+    assert ok.status_code == 200
+    data = ok.json()
+    assert data["user"]["role"] == "authority"
+    assert data["user"]["title"] == "Assistant Engineer"
+    t = data["token"]
+
+    # Authority token can access command center
+    dash = client.get("/api/authority/dashboard", headers=bearer(t))
+    assert dash.status_code == 200
+
+
 def test_wrong_password_and_wrong_portal(client):
     assert client.post("/api/auth/login", json={"email": "citizen@civicpulse.demo", "password": "bad", "role": "citizen"}).status_code == 401
     # Citizen account cannot sign in through the authority portal, and vice versa.

@@ -1,13 +1,14 @@
 """Sign-in for citizens and ward-office staff (demo accounts, hashed passwords, bearer sessions)."""
 from __future__ import annotations
 
+import hmac
 import re
 import sqlite3
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
-from .. import auth, repository as repo
+from .. import auth, config, repository as repo
 from ..schemas import tracking_view
 
 router = APIRouter(prefix="/api")
@@ -18,6 +19,9 @@ class Register(BaseModel):
     name: str = Field(..., max_length=80)
     email: str = Field(..., max_length=120)
     password: str = Field(..., max_length=128)
+    role: str = Field("citizen", pattern="^(citizen|authority)$")
+    title: str | None = Field(None, max_length=100)
+    authority_code: str | None = None
 
 
 class SignIn(BaseModel):
@@ -35,13 +39,20 @@ def register(body: Register):
         errors["email"] = "Enter a valid email address."
     if len(body.password) < 8:
         errors["password"] = "Use at least 8 characters."
+    if body.role == "authority":
+        code = (body.authority_code or "").strip()
+        if not code or not hmac.compare_digest(code, config.AUTHORITY_CODE):
+            errors["authority_code"] = f"Invalid authority passcode (Demo code: {config.AUTHORITY_CODE})."
+        if not body.title or not body.title.strip():
+            errors["title"] = "Enter your official designation or title."
     if errors:
         raise HTTPException(422, detail={"message": "Please fix the highlighted fields.", "fields": errors})
     if auth.get_user_by_email(body.email):
         raise HTTPException(409, detail={"message": "An account with this email already exists. Sign in instead.",
                                          "fields": {"email": "Already registered."}})
     try:
-        u = auth.create_user(body.name, body.email, body.password, "citizen")
+        title = body.title.strip() if (body.role == "authority" and body.title) else None
+        u = auth.create_user(body.name, body.email, body.password, body.role, title=title)
     except sqlite3.IntegrityError:
         raise HTTPException(409, detail={"message": "An account with this email already exists."})
     return {"token": auth.create_session(u), "user": auth.public_user(u)}

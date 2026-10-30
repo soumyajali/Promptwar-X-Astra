@@ -1,6 +1,6 @@
-import { ArrowRight, CircleCheck, ClipboardList, Inbox, LogOut, Plus, UserRound } from 'lucide-react'
+import { ArrowRight, CircleCheck, ClipboardList, Inbox, LogOut, Plus, ShieldCheck, Sparkles, UserRound } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Card, StatTile } from '../components/obs'
 import { ErrorState, PriorityBadge, Skeleton, StatusPill } from '../components/ui'
 import { api, ApiError } from '../lib/api'
@@ -9,7 +9,7 @@ import { session, useSession, type Session } from '../lib/session'
 import type { Level, Status } from '../lib/types'
 import { useLiveQuery } from '../store/live'
 
-/** Citizen account: sign in / create account, then "My reports". Demo accounts — no identity verification. */
+/** User (Citizen) and Authority (Ward Office) accounts: sign in / create account, and citizen dashboard. */
 export function Account() {
   const me = useSession()
   if (!me) return <AuthForms />
@@ -17,8 +17,11 @@ export function Account() {
     return (
       <div className="wrap acct">
         <Card title="Signed in as ward-office staff">
-          <p className="muted">{me.user.name} · {me.user.title}. Authority accounts work in the Command Center.</p>
-          <div className="acct__row"><Link to="/command" className="btn btn--signal">Open Command Center <ArrowRight /></Link><SignOut /></div>
+          <p className="muted">{me.user.name} · {me.user.title || 'Ward office'}. Authority accounts operate the Command Center.</p>
+          <div className="acct__row" style={{ marginTop: 16 }}>
+            <Link to="/command" className="btn btn--signal">Open Command Center <ArrowRight /></Link>
+            <SignOut />
+          </div>
         </Card>
       </div>
     )
@@ -28,65 +31,333 @@ export function Account() {
 
 function SignOut({ to = '/account' }: { to?: string }) {
   const nav = useNavigate()
-  return <button className="btn btn--ghost" onClick={async () => { await api.signOut(); session.clear(); nav(to) }}><LogOut />Sign out</button>
+  return (
+    <button
+      className="btn btn--ghost"
+      onClick={async () => {
+        await api.signOut()
+        session.clear()
+        nav(to)
+      }}
+    >
+      <LogOut />Sign out
+    </button>
+  )
 }
 
 function AuthForms() {
-  const [mode, setMode] = useState<'in' | 'up'>('in')
+  const [params, setParams] = useSearchParams()
+  const portal = params.get('role') === 'authority' ? 'authority' : 'citizen'
+  const mode = params.get('mode') === 'register' ? 'up' : 'in'
+
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [title, setTitle] = useState('Ward Officer')
+  const [authorityCode, setAuthorityCode] = useState('civic-demo')
   const [err, setErr] = useState<string | null>(null)
   const [fields, setFields] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
+  const nav = useNavigate()
+
+  const switchPortal = (p: 'citizen' | 'authority') => {
+    setErr(null)
+    setFields({})
+    setParams({ role: p, mode: mode === 'up' ? 'register' : 'login' }, { replace: true })
+  }
+
+  const switchMode = (m: 'in' | 'up') => {
+    setErr(null)
+    setFields({})
+    setParams({ role: portal, mode: m === 'up' ? 'register' : 'login' }, { replace: true })
+  }
+
+  const fillCitizenDemo = () => {
+    setEmail('citizen@civicpulse.demo')
+    setPassword('Citizen@2026')
+    setErr(null)
+    setFields({})
+  }
+
+  const fillOfficerDemo = () => {
+    setEmail('officer@civicpulse.demo')
+    setPassword('Officer@2026')
+    setErr(null)
+    setFields({})
+  }
+
+  const fillEngineerDemo = () => {
+    setEmail('engineer@civicpulse.demo')
+    setPassword('Engineer@2026')
+    setErr(null)
+    setFields({})
+  }
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
-    setBusy(true); setErr(null); setFields({})
+    setBusy(true)
+    setErr(null)
+    setFields({})
+
     try {
-      const s: Session = mode === 'up' ? await api.register(name.trim(), email.trim(), password) : await api.signIn(email.trim(), password, 'citizen')
-      session.set(s)
+      let s: Session
+      if (portal === 'authority') {
+        if (mode === 'up') {
+          s = await api.register(name.trim(), email.trim(), password, 'authority', title.trim(), authorityCode.trim())
+        } else {
+          s = await api.signIn(email.trim(), password, 'authority')
+        }
+        session.set(s)
+        nav('/command', { replace: true })
+      } else {
+        if (mode === 'up') {
+          s = await api.register(name.trim(), email.trim(), password, 'citizen')
+        } else {
+          s = await api.signIn(email.trim(), password, 'citizen')
+        }
+        session.set(s)
+      }
     } catch (e) {
       setErr((e as Error).message)
       if (e instanceof ApiError) setFields(e.fields)
-    } finally { setBusy(false) }
+    } finally {
+      setBusy(false)
+    }
   }
+
+  const isCitizen = portal === 'citizen'
 
   return (
     <div className="wrap acct acct--auth">
       <div className="acct__intro">
-        <span className="eyebrow">Citizen account</span>
-        <h1 className="serif display-2">{mode === 'in' ? 'Sign in to track your reports' : 'Create your citizen account'}</h1>
-        <p className="muted">An account keeps every complaint you file in one place, with live status from the ward office. You can still report anonymously without one.</p>
-        <p className="small muted">Hackathon demo: accounts live in this app's database only. There is no identity verification or link to any government system.</p>
-      </div>
-      <form className="card acct__form" onSubmit={submit} noValidate>
-        <div className="seg" role="tablist" aria-label="Account">
-          <button type="button" role="tab" aria-selected={mode === 'in'} className={mode === 'in' ? 'is-on' : ''} onClick={() => { setMode('in'); setErr(null); setFields({}) }}>Sign in</button>
-          <button type="button" role="tab" aria-selected={mode === 'up'} className={mode === 'up' ? 'is-on' : ''} onClick={() => { setMode('up'); setErr(null); setFields({}) }}>Create account</button>
+        <div className="acct__portal-tabs" role="tablist" aria-label="Select portal">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={isCitizen}
+            className={`acct__portal-btn ${isCitizen ? 'is-active' : ''}`}
+            onClick={() => switchPortal('citizen')}
+          >
+            <UserRound size={15} /> Citizen / Resident
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={!isCitizen}
+            className={`acct__portal-btn ${!isCitizen ? 'is-active' : ''}`}
+            onClick={() => switchPortal('authority')}
+          >
+            <ShieldCheck size={15} /> Ward Authority
+          </button>
         </div>
+
+        <span className="eyebrow">
+          {isCitizen ? 'Citizen Account' : 'Ward Office · Authority Portal'}
+        </span>
+
+        <h1 className="serif display-2">
+          {isCitizen
+            ? mode === 'in'
+              ? 'Sign in to track your reports'
+              : 'Create your citizen account'
+            : mode === 'in'
+              ? 'Authority sign-in to Command Center'
+              : 'Register ward-office staff account'}
+        </h1>
+
+        <p className="muted">
+          {isCitizen
+            ? 'An account keeps every civic complaint you file in one place, with live status updates from the ward engineers.'
+            : 'For municipal officers, road engineers, and ward inspectors to prioritize issues, dispatch crews, and publish status updates.'}
+        </p>
+
+        <div className="acct__demo-badge">
+          <b>{isCitizen ? 'Demo Citizen Credentials' : 'Demo Ward Authority Credentials'}</b>
+          {isCitizen ? (
+            <>
+              <span>Email: <code>citizen@civicpulse.demo</code> · Pass: <code>Citizen@2026</code></span>
+              {mode === 'in' && (
+                <button type="button" className="acct__demo-click" onClick={fillCitizenDemo}>
+                  <Sparkles size={13} /> Auto-fill citizen credentials
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              <span>Officer: <code>officer@civicpulse.demo</code> · Engineer: <code>engineer@civicpulse.demo</code></span>
+              <span>Passcode: <code>civic-demo</code> · Passwords: <code>Officer@2026</code> / <code>Engineer@2026</code></span>
+              {mode === 'in' && (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  <button type="button" className="acct__demo-click" onClick={fillOfficerDemo}>
+                    <Sparkles size={13} /> Auto-fill Ward Officer
+                  </button>
+                  <button type="button" className="acct__demo-click" onClick={fillEngineerDemo}>
+                    <Sparkles size={13} /> Auto-fill Engineer
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      <form className="card acct__form" onSubmit={submit} noValidate>
+        <div className="seg" role="tablist" aria-label="Sign in or register">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === 'in'}
+            className={mode === 'in' ? 'is-on' : ''}
+            onClick={() => switchMode('in')}
+          >
+            Sign in
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === 'up'}
+            className={mode === 'up' ? 'is-on' : ''}
+            onClick={() => switchMode('up')}
+          >
+            Create account
+          </button>
+        </div>
+
         {mode === 'up' && (
           <div className="field">
-            <label htmlFor="c-name">Full name</label>
-            <input id="c-name" className="input" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" maxLength={80} aria-invalid={!!fields.name} />
+            <label htmlFor="auth-name">Full name</label>
+            <input
+              id="auth-name"
+              className="input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={isCitizen ? 'e.g. Ramesh Pai' : 'e.g. Er. Anil Rao'}
+              autoComplete="name"
+              maxLength={80}
+              required
+              aria-invalid={!!fields.name}
+            />
             {fields.name && <span className="error">{fields.name}</span>}
           </div>
         )}
+
         <div className="field">
-          <label htmlFor="c-email">Email</label>
-          <input id="c-email" className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" aria-invalid={!!fields.email} />
+          <label htmlFor="auth-email">{isCitizen ? 'Email address' : 'Official work email'}</label>
+          <input
+            id="auth-email"
+            className="input"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={isCitizen ? 'you@example.com' : 'officer@civicpulse.demo'}
+            autoComplete="email"
+            required
+            aria-invalid={!!fields.email}
+          />
           {fields.email && <span className="error">{fields.email}</span>}
         </div>
+
+        {!isCitizen && mode === 'up' && (
+          <>
+            <div className="field">
+              <label htmlFor="auth-title">Designation / Official Title</label>
+              <input
+                id="auth-title"
+                className="input"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Ward Officer, Road Engineer, Inspector"
+                maxLength={100}
+                required
+                aria-invalid={!!fields.title}
+              />
+              {fields.title && <span className="error">{fields.title}</span>}
+            </div>
+
+            <div className="field">
+              <label htmlFor="auth-code">Authority Passcode</label>
+              <input
+                id="auth-code"
+                className="input"
+                value={authorityCode}
+                onChange={(e) => setAuthorityCode(e.target.value)}
+                placeholder="civic-demo"
+                autoComplete="off"
+                required
+                aria-invalid={!!fields.authority_code}
+              />
+              {fields.authority_code ? (
+                <span className="error">{fields.authority_code}</span>
+              ) : (
+                <span className="hint">Demo passcode: <code>civic-demo</code></span>
+              )}
+            </div>
+          </>
+        )}
+
         <div className="field">
-          <label htmlFor="c-pass">Password</label>
-          <input id="c-pass" className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === 'up' ? 'new-password' : 'current-password'} aria-invalid={!!fields.password} />
-          {fields.password ? <span className="error">{fields.password}</span> : mode === 'up' && <span className="hint">At least 8 characters.</span>}
+          <label htmlFor="auth-pass">Password</label>
+          <input
+            id="auth-pass"
+            className="input"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete={mode === 'up' ? 'new-password' : 'current-password'}
+            required
+            aria-invalid={!!fields.password}
+          />
+          {fields.password ? (
+            <span className="error">{fields.password}</span>
+          ) : (
+            mode === 'up' && <span className="hint">At least 8 characters.</span>
+          )}
         </div>
-        {err && !Object.keys(fields).length && <div className="notice notice--danger" role="alert">{err}</div>}
-        <button className="btn btn--signal btn--block" disabled={busy || !email || !password || (mode === 'up' && !name)}>
-          {busy ? 'Please wait…' : mode === 'in' ? <>Sign in <ArrowRight /></> : <>Create account <ArrowRight /></>}
+
+        {err && !Object.keys(fields).length && (
+          <div className="notice notice--danger" role="alert">
+            {err}
+          </div>
+        )}
+
+        <button
+          className="btn btn--signal btn--block"
+          disabled={busy || !email || !password || (mode === 'up' && !name) || (!isCitizen && mode === 'up' && (!title || !authorityCode))}
+        >
+          {busy
+            ? 'Please wait…'
+            : mode === 'in'
+              ? <>Sign in as {isCitizen ? 'Citizen' : 'Authority'} <ArrowRight /></>
+              : <>Register as {isCitizen ? 'Citizen' : 'Authority'} <ArrowRight /></>}
         </button>
-        <p className="small muted">Ward-office staff? <Link to="/command/login" className="link-id">Authority sign-in</Link></p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
+          {isCitizen ? (
+            <p className="small muted">
+              Ward-office staff?{' '}
+              <button
+                type="button"
+                className="link-id"
+                style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer' }}
+                onClick={() => switchPortal('authority')}
+              >
+                Switch to Authority sign-in & register
+              </button>
+            </p>
+          ) : (
+            <p className="small muted">
+              Resident citizen?{' '}
+              <button
+                type="button"
+                className="link-id"
+                style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer' }}
+                onClick={() => switchPortal('citizen')}
+              >
+                Switch to Citizen portal
+              </button>
+            </p>
+          )}
+        </div>
       </form>
     </div>
   )

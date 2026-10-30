@@ -10,8 +10,8 @@ export function PublicLayout() {
   const loc = useLocation()
   const me = useSession()
   const acct = me?.user.role === 'authority'
-    ? { to: '/command', label: me.user.name.split(' ').slice(-1)[0] }
-    : me ? { to: '/account', label: 'My reports' } : { to: '/account', label: 'Sign in' }
+    ? { to: '/command', label: `${me.user.name.split(' ').slice(-1)[0]} (Staff)` }
+    : me ? { to: '/account', label: 'My reports' } : { to: '/account', label: 'Sign in / Register' }
   const overHero = loc.pathname === '/'
   useEffect(() => { setOpen(false); window.scrollTo(0, 0) }, [loc.pathname])
   useEffect(() => {
@@ -57,11 +57,13 @@ export function PublicLayout() {
             <h4 className="eyebrow">Citizens</h4>
             <Link to="/report">Report an issue</Link>
             <Link to="/track">Track a report</Link>
+            <Link to="/account?role=citizen">Sign in / Register</Link>
             <a href="/#pulse">City pulse</a>
           </div>
           <div>
             <h4 className="eyebrow">Ward office</h4>
             <Link to="/command">Command Center</Link>
+            <Link to="/account?role=authority">Authority Portal</Link>
             <Link to="/command/briefs">Action briefs</Link>
             <Link to="/command/intelligence">How the engine works</Link>
           </div>

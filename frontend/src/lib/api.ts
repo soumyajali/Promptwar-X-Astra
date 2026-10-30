@@ -53,7 +53,8 @@ export const api = {
   submit: (form: FormData) => request<TrackView>('/api/reports', { method: 'POST', body: form }),
   track: (id: string) => request<TrackView>(`/api/track/${encodeURIComponent(id.trim())}`),
 
-  register: (name: string, email: string, password: string) => request<Session>('/api/auth/register', post({ name, email, password })),
+  register: (name: string, email: string, password: string, role: 'citizen' | 'authority' = 'citizen', title?: string, authority_code?: string) =>
+    request<Session>('/api/auth/register', post({ name, email, password, role, title, authority_code })),
   signIn: (email: string, password: string, role: 'citizen' | 'authority') => request<Session>('/api/auth/login', post({ email, password, role })),
   signOut: () => request<{ ok: boolean }>('/api/auth/logout', { method: 'POST' }).catch(() => ({ ok: false })),
   me: () => request<User>('/api/auth/me'),
