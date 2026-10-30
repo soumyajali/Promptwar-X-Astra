@@ -1,7 +1,10 @@
+import { session, type Session, type User } from './session'
 import type {
   AssistantAnswer, AuthorityReport, Brief, Dashboard, Hotspot, Meta, Preview, PublicReport, PublicStats,
   ReportDetail, Status, TrackView,
 } from './types'
+
+export type MyReport = Omit<TrackView, 'analysis'> & { priority_level: string; priority_score: number }
 
 export class ApiError extends Error {
   status: number
@@ -13,20 +16,11 @@ export class ApiError extends Error {
   }
 }
 
-const AUTH_KEY = 'civicpulse.authority'
-
-export const auth = {
-  get: () => {
-    try { return sessionStorage.getItem(AUTH_KEY) } catch { return null }
-  },
-  set: (code: string) => { try { sessionStorage.setItem(AUTH_KEY, code) } catch { /* private mode */ } },
-  clear: () => { try { sessionStorage.removeItem(AUTH_KEY) } catch { /* ignore */ } },
-}
-
 async function request<T>(path: string, init: RequestInit = {}, authority = false): Promise<T> {
   const headers = new Headers(init.headers)
   if (init.body && !(init.body instanceof FormData)) headers.set('Content-Type', 'application/json')
-  if (authority) headers.set('X-Authority-Code', auth.get() ?? '')
+  const token = session.token()
+  if (token) headers.set('Authorization', `Bearer ${token}`)
   let res: Response
   try {
     res = await fetch(path, { ...init, headers })
@@ -40,9 +34,8 @@ async function request<T>(path: string, init: RequestInit = {}, authority = fals
     if (!detail.message && res.status >= 500) {
       throw new ApiError(0, 'Cannot reach the CivicPulse server. Check that the backend is running.')
     }
-    if (res.status === 401 && authority) {
-      auth.clear()
-      window.dispatchEvent(new Event('civicpulse:logout'))
+    if (res.status === 401 && (authority || path.startsWith('/api/citizen') || path === '/api/auth/me')) {
+      session.clear()  // expired or revoked session: the layouts send the user back to sign in
     }
     throw new ApiError(res.status, detail.message ?? `Request failed (${res.status})`, detail.fields ?? {})
   }
@@ -60,7 +53,11 @@ export const api = {
   submit: (form: FormData) => request<TrackView>('/api/reports', { method: 'POST', body: form }),
   track: (id: string) => request<TrackView>(`/api/track/${encodeURIComponent(id.trim())}`),
 
-  login: (code: string) => request<{ ok: boolean; name: string }>('/api/authority/login', post({ code })),
+  register: (name: string, email: string, password: string) => request<Session>('/api/auth/register', post({ name, email, password })),
+  signIn: (email: string, password: string, role: 'citizen' | 'authority') => request<Session>('/api/auth/login', post({ email, password, role })),
+  signOut: () => request<{ ok: boolean }>('/api/auth/logout', { method: 'POST' }).catch(() => ({ ok: false })),
+  me: () => request<User>('/api/auth/me'),
+  myReports: () => request<MyReport[]>('/api/citizen/reports'),
   reports: () => request<AuthorityReport[]>('/api/authority/reports', {}, true),
   report: (id: string) => request<ReportDetail>(`/api/authority/reports/${id}`, {}, true),
   dashboard: () => request<Dashboard>('/api/authority/dashboard', {}, true),

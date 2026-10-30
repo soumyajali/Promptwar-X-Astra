@@ -509,3 +509,31 @@
   .tcard__facts { grid-template-columns: 1fr 1fr; }
   .otrack__search .btn { min-width: 0; }
 }
+.masthead__acct { display: inline-flex; align-items: center; gap: 6px; border-color: transparent; }
+.masthead__acct svg { color: var(--amber); }
+
+/* ---- Citizen account ---------------------------------------------------- */
+.acct { padding-block: clamp(28px, 5vw, 56px) 72px; display: grid; gap: 22px; }
+.acct--auth { grid-template-columns: minmax(0, 1fr) minmax(0, 440px); align-items: start; gap: clamp(24px, 5vw, 72px); }
+.acct__intro { display: grid; gap: 14px; max-width: 56ch; padding-top: 12px; }
+.acct__form { display: grid; gap: 16px; padding: 24px; }
+.acct__form .seg { justify-self: start; }
+.acct__head { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: flex-end; }
+.acct__head .eyebrow { display: inline-flex; gap: 6px; align-items: center; }
+.acct__row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.acct__stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.acct__list { list-style: none; margin: 0; padding: 0; }
+.acct__list li + li { border-top: 1px solid var(--rule); }
+.acct__item { display: grid; gap: 6px; padding: 16px 20px; color: inherit; text-decoration: none; }
+.acct__item:hover { background: var(--surface-2); }
+.acct__item > b { font-size: 16px; color: var(--ink); }
+.acct__top { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.acct__last { color: var(--ink-soft); border-left: 2px solid var(--amber); padding-left: 10px; }
+.acct__empty { display: grid; gap: 10px; justify-items: start; padding: 28px 20px; }
+.acct__empty .serif { font-size: 22px; margin: 0; }
+@media (max-width: 860px) { .acct--auth { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .acct__stats { grid-template-columns: 1fr; } }
+.wizard__who { margin: 4px 2px 0; line-height: 1.45; }
+.masthead__acct { white-space: nowrap; }
+@media (max-width: 560px) { .masthead__acct { display: none; } }
+.masthead__navtrack svg { vertical-align: -2px; color: var(--amber); }

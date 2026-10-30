@@ -7,7 +7,8 @@ import { ShieldCheck } from 'lucide-react'
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Assistant } from '../components/Assistant'
 import { LiveIndicator, Logo, Toast, useToast } from '../components/ui'
-import { api, auth } from '../lib/api'
+import { api } from '../lib/api'
+import { session, useSession } from '../lib/session'
 import { useLive } from '../store/live'
 
 const NAV = [
@@ -31,26 +32,24 @@ function Clock() {
 export function CommandLayout() {
   const nav = useNavigate()
   const loc = useLocation()
-  const [authed, setAuthed] = useState(!!auth.get())
+  const me = useSession()
   const [menu, setMenu] = useState(false)
+  const [confirmReset, setConfirmReset] = useState(false)
   const [assistant, setAssistant] = useState(false)
   const toast = useToast()
   const { lastEvent } = useLive()
 
-  useEffect(() => {
-    const out = () => setAuthed(false)
-    window.addEventListener('civicpulse:logout', out)
-    return () => window.removeEventListener('civicpulse:logout', out)
-  }, [])
   useEffect(() => { setMenu(false) }, [loc.pathname])
   useEffect(() => {
     if (lastEvent?.event === 'report.created' && lastEvent.id) toast.show(`New citizen report ${lastEvent.id} received and analysed`)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastEvent])
 
-  if (!authed) return <Navigate to="/command/login" replace state={{ from: loc.pathname }} />
-
-  const [confirmReset, setConfirmReset] = useState(false)
+  // Only signed-in ward-office accounts get the Command Center; citizens are sent to the authority sign-in.
+  if (!me || me.user.role !== 'authority') {
+    return <Navigate to="/command/login" replace state={{ from: loc.pathname, citizen: me?.user.role === 'citizen' }} />
+  }
+  const signOut = async () => { await api.signOut(); session.clear(); nav('/command/login', { replace: true }) }
   const reset = async () => {
     setConfirmReset(false)
     try {
@@ -68,6 +67,7 @@ export function CommandLayout() {
           <button className="btn btn--quiet cmd__close" aria-label="Close menu" onClick={() => setMenu(false)}><X /></button>
         </div>
         <div className="cmd__role"><span className="eyebrow eyebrow--light">Ward Office · Demo City</span><LiveIndicator light /></div>
+        <div className="cmd__who"><span className="cmd__avatar" aria-hidden>{me.user.name.replace(/^(Er|Dr|Mr|Ms)\.\s*/, '').split(' ').map((w) => w[0]).slice(0, 2).join('')}</span><span><b>{me.user.name}</b><em>{me.user.title ?? 'Ward office'} · Authority</em></span></div>
         <nav className="cmd__nav">
           {NAV.map(({ to, label, icon: Icon, end }) => (
             <NavLink key={to} to={to} end={end}><Icon aria-hidden />{label}</NavLink>
@@ -85,7 +85,7 @@ export function CommandLayout() {
               <div><button className="btn btn--signal btn--sm" onClick={reset}>Reset</button><button className="btn btn--quiet btn--sm" onClick={() => setConfirmReset(false)}>Cancel</button></div>
             </div>
           ) : <button className="cmd__link" onClick={() => setConfirmReset(true)}><RotateCcw />Reset demo data</button>}
-          <button className="cmd__link" onClick={() => { auth.clear(); setAuthed(false) }}><LogOut />Sign out</button>
+          <button className="cmd__link" onClick={signOut}><LogOut />Sign out</button>
         </div>
       </aside>
       <div className="cmd__scrim" onClick={() => setMenu(false)} />
@@ -93,10 +93,10 @@ export function CommandLayout() {
         <header className="cmd__top">
           <button className="btn btn--quiet cmd__burger" aria-label="Open menu" onClick={() => setMenu(true)}><Menu /></button>
           <Link to="/" className="cmd__toplogo"><Logo compact /></Link>
-          <span className="cmd__topnote mono">Demo access · synthetic data</span>
+          <span className="cmd__topnote mono">Demo account · synthetic data</span>
           <div className="cmd__topact">
             <Clock />
-            <span className="cmd__admin"><ShieldCheck size={15} />Ward officer</span>
+            <span className="cmd__admin" title={me.user.email}><ShieldCheck size={15} /><span><b>{me.user.name}</b><em>{me.user.title ?? 'Ward office'}</em></span></span>
             <Link to="/report" className="btn btn--ghost btn--sm" target="_blank">Citizen view</Link>
             <button className="btn btn--civic btn--sm" onClick={() => setAssistant(true)}><MessageSquareText />Ask</button>
           </div>

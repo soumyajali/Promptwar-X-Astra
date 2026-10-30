@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { CityMap } from '../components/CityMap'
 import { CategoryTag, PriorityBadge, ScoreBreakdown, StatusPill } from '../components/ui'
 import { ApiError, api } from '../lib/api'
+import { useSession } from '../lib/session'
 import { CATEGORY_KEYS, CATEGORY_META, DEMO_EXAMPLE } from '../lib/constants'
 import { distance, pct } from '../lib/format'
 import { fmtAccuracy, GeoError, insecureMessage, locate, permissionState, refine, type GeoErrorKind } from '../lib/geolocation'
@@ -29,7 +30,8 @@ export function Report() {
   const [fitKey, setFitKey] = useState(0) // bumps only when the device or demo sets the pin, so map taps don't re-centre
   const [image, setImage] = useState<File | null>(null)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
-  const [name, setName] = useState('')
+  const me = useSession()
+  const [name, setName] = useState(() => (me?.user.role === 'citizen' ? me.user.name : ''))
   const [contact, setContact] = useState('')
   const [affected, setAffected] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -184,6 +186,9 @@ export function Report() {
           ))}
         </ol>
         <button type="button" className="btn btn--ghost btn--sm wizard__demo" onClick={fillDemo}><Sparkles />Fill with demo example</button>
+        <p className="small muted wizard__who">{me?.user.role === 'citizen'
+          ? <>Reporting as <b>{me.user.name}</b> — this report will appear in <Link to="/account" className="link-id">My reports</Link>.</>
+          : <>Reporting anonymously. <Link to="/account" className="link-id">Sign in</Link> to keep your reports in one place.</>}</p>
       </nav>
       <form className="wizard__main" onSubmit={submit} noValidate>
         <header className="wizard__head">
@@ -373,6 +378,7 @@ function Submitted({ r, onAnother }: { r: TrackView; onAnother: () => void }) {
         <div className="hero__ctas">
           <Link to={`/track/${r.id}`} className="btn btn--civic">Track this report <ArrowRight /></Link>
           <button className="btn btn--ghost" onClick={onAnother}>Report another issue</button>
+          <MyReportsLink />
         </div>
       </header>
 
@@ -441,4 +447,11 @@ function Submitted({ r, onAnother }: { r: TrackView; onAnother: () => void }) {
       </section>
     </div>
   )
+}
+
+/** After submitting: signed-in citizens can jump to their dashboard; others are invited to sign in next time. */
+function MyReportsLink() {
+  const me = useSession()
+  if (me?.user.role === 'citizen') return <Link to="/account" className="btn btn--ghost">My reports</Link>
+  return null
 }

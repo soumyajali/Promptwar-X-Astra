@@ -7,7 +7,9 @@
    *(or single-process: `npm run build` once, then open http://localhost:8000)*
 3. Open **two browser windows side by side**:
    - **Window A (citizen):** http://localhost:5173/report
-   - **Window B (authority):** http://localhost:5173/command → click **Use demo code** → **Enter** (code: `civic-demo`)
+   - **Window B (authority):** http://localhost:5173/command → sign in as `officer@civicpulse.demo` / `Officer@2026`
+   - Optional citizen account (Window A): http://localhost:5173/account → `citizen@civicpulse.demo` / `Citizen@2026`
+     (or create one). Reports filed while signed in appear under **My reports** with live status.
 4. In Window B, click **Reset demo data** in the sidebar so you start from the clean 46-report dataset.
 5. Have `docs/demo/sample-waterlogging.jpg` ready (an illustration, labelled as such) or use any real photo.
 
@@ -89,3 +91,16 @@ Walk down the panels:
 
 Command Center sidebar → **Reset demo data** (or `POST /api/authority/demo/reset` with header
 `X-Authority-Code: civic-demo`). Seed IDs are stable across resets (e.g. `CP-S794U7` is the top critical report).
+
+## Login flow demo (citizen → authority → citizen)
+
+1. `/account` → **Create account** (or sign in as `citizen@civicpulse.demo` / `Citizen@2026`).
+2. **Report an issue** → choose **Roads and potholes**, describe the pothole → **Next** → type the location and tap the
+   map → **Next** → **Next** → **Submit report**. Note the tracking ID; it is listed under **My reports**.
+3. **Sign out**. Click **Command Center** in the header → sign in as `officer@civicpulse.demo` / `Officer@2026`
+   (the header shows *Priya Shetty · Ward Officer*).
+4. **All reports** → search the ID → open it: category, summary, duplicate check and the priority breakdown.
+5. **Assign**: department **Road Maintenance**, officer *Er. Anil Rao* → **Save assignment**.
+6. **Update status** → **In progress**, add a message → **Update status**. Post a citizen-visible progress note.
+7. **Sign out** → `/account` → sign in as the citizen → open the report: status *In progress*, Road Maintenance,
+   the officer and both notes in the timeline, same tracking ID.

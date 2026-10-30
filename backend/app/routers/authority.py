@@ -1,11 +1,11 @@
-"""Authority command-centre endpoints. Protected by a demo access code (not production auth)."""
+"""Authority command-centre endpoints. Protected by demo staff accounts (not government authentication)."""
 from __future__ import annotations
 
 import hmac
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 
-from .. import config, repository as repo
+from .. import auth, config, repository as repo
 from ..schemas import Assignment, CategoryCorrection, Login, PriorityOverride, Question, StatusChange, Update, authority_view
 from ..services import workflow as wf
 from ..services.analytics import dashboard
@@ -15,10 +15,8 @@ from ..services.brief import action_brief
 from ..services.hotspots import detect_hotspots
 
 
-def require_authority(x_authority_code: str | None = Header(None)) -> str:
-    if not x_authority_code or not hmac.compare_digest(x_authority_code, config.AUTHORITY_CODE):
-        raise HTTPException(401, detail={"message": "Authority access code required."})
-    return "Ward Officer (demo)"
+def require_authority(authorization: str | None = Header(None), x_authority_code: str | None = Header(None)) -> str:
+    return auth.authority_actor(authorization, x_authority_code)
 
 
 router = APIRouter(prefix="/api/authority")

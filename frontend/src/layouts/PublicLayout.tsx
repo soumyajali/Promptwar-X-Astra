@@ -1,12 +1,17 @@
-import { ArrowUpRight, Menu, X } from 'lucide-react'
+import { ArrowUpRight, Menu, UserRound, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Logo } from '../components/ui'
+import { useSession } from '../lib/session'
 
 export function PublicLayout() {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const loc = useLocation()
+  const me = useSession()
+  const acct = me?.user.role === 'authority'
+    ? { to: '/command', label: me.user.name.split(' ').slice(-1)[0] }
+    : me ? { to: '/account', label: 'My reports' } : { to: '/account', label: 'Sign in' }
   const overHero = loc.pathname === '/'
   useEffect(() => { setOpen(false); window.scrollTo(0, 0) }, [loc.pathname])
   useEffect(() => {
@@ -28,9 +33,11 @@ export function PublicLayout() {
             <a href="/#pulse">City pulse</a>
             <NavLink to="/track" className="masthead__navtrack">Track a report</NavLink>
             <NavLink to="/command" className="masthead__cmd">Command Center <ArrowUpRight size={15} /></NavLink>
+            <NavLink to={acct.to} className="masthead__navtrack"><UserRound size={15} /> {acct.label}</NavLink>
             <Link to="/report" className="btn btn--signal btn--sm masthead__cta-mobile">Report an issue</Link>
           </nav>
           <div className="masthead__actions">
+            <Link to={acct.to} className="masthead__track masthead__acct" title={me ? `${me.user.name} · ${me.user.role}` : 'Citizen sign-in'}><UserRound size={15} />{acct.label}</Link>
             <Link to="/track" className="masthead__track">Track a report</Link>
             <Link to="/report" className="btn btn--civic btn--sm">Report an issue</Link>
             <button className="btn btn--quiet masthead__toggle" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen(!open)}>

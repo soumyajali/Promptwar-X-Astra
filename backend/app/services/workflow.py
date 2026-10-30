@@ -5,7 +5,7 @@ Each operation persists to SQLite, writes a timeline entry, and publishes an SSE
 from __future__ import annotations
 
 from .. import repository as repo
-from ..config import CATEGORIES, CATEGORY_DEPARTMENT, DEPARTMENTS, OFFICERS, STATUSES
+from ..config import CATEGORIES, CATEGORY_DEPARTMENT, DEPARTMENTS, STATUSES
 from ..events import broker
 from .pipeline import analyse, rescore_neighbours
 from .priority import level_for
@@ -121,8 +121,8 @@ def assign(rid: str, department: str, officer: str | None, *, actor: str, at: st
     r = _require(rid)
     if department not in DEPARTMENTS:
         raise WorkflowError(f"Unknown department '{department}'.")
-    if officer and officer not in OFFICERS.get(department, []):
-        raise WorkflowError(f"{officer} is not on the {DEPARTMENTS[department]} roster.")
+    # The roster in config is a suggestion list; the ward office may name any responsible officer.
+    officer = " ".join((officer or "").split())[:80] or None
     when = at or repo.now_iso()
     fields = {"department": department, "officer": officer, "updated_at": when}
     moved = False

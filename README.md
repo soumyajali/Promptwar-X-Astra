@@ -25,7 +25,29 @@ and citizens never hear back.
 | **Reveal** | Live map, hotspots, dashboard, analytics | DBSCAN over haversine distance; all metrics computed from SQLite on request |
 | **Act** | Assign department + officer, update status, public/internal notes, resolve with a note, action brief, data-backed assistant | Audited workflow with timeline; live sync over Server-Sent Events |
 
+## Demo accounts
+
+All accounts are **synthetic demo accounts** created on first start. Passwords are stored only as salted PBKDF2-SHA256
+hashes; the browser keeps an opaque session token, never a password. This is hackathon sign-in, **not** government
+authentication or identity verification.
+
+| Portal | URL | Email | Password | Shown as |
+|---|---|---|---|---|
+| Citizen | `/account` | `citizen@civicpulse.demo` | `Citizen@2026` | Ravi Kumar · citizen |
+| Authority | `/command/login` | `officer@civicpulse.demo` | `Officer@2026` | Priya Shetty · Ward Officer |
+| Authority | `/command/login` | `engineer@civicpulse.demo` | `Engineer@2026` | Er. Anil Rao · Assistant Engineer, Road Maintenance |
+
+Citizens can also create their own account at `/account` (name, email, password ≥ 8 characters). Citizen accounts are
+refused by the authority sign-in and by every `/api/authority/*` endpoint (HTTP 403). Reporting without an account
+still works. For scripts and the API tests, the old shared header `X-Authority-Code: civic-demo` is still accepted
+(set `CIVICPULSE_AUTHORITY_CODE` to change it).
+
 ## Features
+
+**Citizen accounts**
+- Register / sign in / sign out at `/account`; the header shows "Sign in" or "My reports"
+- Citizen dashboard: their own complaints with status, priority, department, officer and the latest update; counts of open and resolved; live updates
+- Reports filed while signed in are linked to the account; each opens the tracking page
 
 **Citizen**
 - Landing page with a photographic city hero, live statistics bar, a data-driven city map (every dot is a real stored report), hotspots and a public ledger
@@ -33,10 +55,10 @@ and citizens never hear back.
 - Instant analysis shown after submit: category, summary, similar reports with reasons and distance, priority breakdown, recommended action
 - Tracking page: progress stepper, live timeline, department, target response, resolution note, photo, map
 
-**Authority Command Center** (demo code `civic-demo`)
+**Authority Command Center** (authority sign-in at `/command/login`; staff name and role shown in the header and sidebar)
 - Overview — 8 live metrics, received-vs-resolved trend, priority mix, critical list, hotspot map, category and department charts, derived insights
 - All reports — search, 5 filters, 4 sort orders, flags for duplicates / category review / overrides
-- Report detail — full AI analysis; correct category; override priority with a logged reason; assign department + officer; change status; citizen-visible or internal notes; timeline
+- Report detail — full AI analysis; correct category; override priority with a logged reason; assign department + any named officer (roster suggestions); change status; citizen-visible or internal notes; timeline
 - Live city map — priority markers, hotspot rings, category/priority/status filters, map↔list switch on mobile
 - Hotspots — each with coordinates, count, dominant category, critical count, average priority, reason and suggested intervention
 - AI intelligence — live classifier playground, classifier/citizen agreement rate, review queue, documented weights, honest limits
@@ -129,7 +151,9 @@ report links. Unrecognised questions get an honest "I can't answer that from the
 `reports` (one row per citizen submission: text, category fields, location, photo path, reporter (private),
 status, priority, department, officer, summary, full analysis JSON, primary duplicate link, timestamps) ·
 `timeline` (every event with `public` / `internal` visibility and actor) · `report_links` (duplicate/related pairs with
-score, distance, likelihood and reasons). Details in ARCHITECTURE.md.
+score, distance, likelihood and reasons) · `users` (name, email, PBKDF2 password hash, role `citizen`/`authority`,
+title) · `sessions` (SHA-256 hash of each bearer token, expiry). `reports.citizen_id` links a report to the citizen
+account that filed it. Details in ARCHITECTURE.md.
 
 ## Setup
 
@@ -169,7 +193,7 @@ category correction, priority override, dashboard arithmetic, privacy of the pub
 ## Demo
 
 See [DEMO_GUIDE.md](DEMO_GUIDE.md) for the exact five-minute script. Short version: **Report an issue → Fill with demo
-example → add `docs/demo/sample-waterlogging.jpg` → Submit** → open **Command Center** (code `civic-demo`) → the new
+example → add `docs/demo/sample-waterlogging.jpg` → Submit** → open **Command Center** (sign in as `officer@civicpulse.demo`) → the new
 report appears live → assign to Water and Drainage, set In progress → open the citizen tracking page → it updates
 without reloading.
 
@@ -186,7 +210,8 @@ The shipped app uses "The Observatory" (Concept 5) theme the team selected after
 - Thresholds and weights were tuned on the synthetic demo data, not real outcomes.
 - Photos are validated and stored but not analysed.
 - Wards are assigned from the nearest existing report (no ward polygons).
-- Authority access is a shared demo code, not real authentication or role management.
+- Sign-in is a demo: no email verification, password reset, rate limiting, CSRF protection or role administration.
+  Sessions last 12 hours (`CIVICPULSE_SESSION_HOURS`); the token is kept in the browser's localStorage.
 - SSE broker is in-process: one backend instance. Clients fall back to 15-second polling if the stream drops.
 - Map tiles come from the public OpenStreetMap servers; offline, markers still render on a plain background.
 
@@ -197,7 +222,7 @@ The shipped app uses "The Observatory" (Concept 5) theme the team selected after
 - **Deterministic AI:** all "AI" is documented rule-based NLP, TF-IDF similarity, weighted scoring and DBSCAN clustering.
   No trained model, no LLM, no external AI API.
 - **Simulated:** "Demo City" — fictional wards, streets, people and complaints placed on Mangaluru coordinates; officer
-  names are invented; the authority login is a demo gate; the city hero image is a generated illustration.
+  names are invented; citizen and authority accounts are demo accounts without identity verification; the city hero image is a generated illustration.
 - **Not claimed:** government integration, emergency dispatch, verified citizen identities, real municipal data or
   production-grade security.
 

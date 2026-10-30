@@ -43,7 +43,7 @@ def insert_report(r: dict) -> None:
             "location_text", "ward", "lat", "lng", "location_source", "location_accuracy_m", "image_path", "reporter_name", "reporter_contact",
             "affected_people", "channel", "status", "priority_score", "priority_level", "department", "officer",
             "summary", "analysis_json", "primary_report_id", "created_at", "updated_at", "resolved_at",
-            "resolution_note"]
+            "resolution_note", "citizen_id"]
     vals = [r.get(c) if c != "analysis_json" else json.dumps(r.get("analysis", {})) for c in cols]
     with db.tx() as conn:
         conn.execute(f"INSERT INTO reports ({','.join(cols)}) VALUES ({','.join('?' * len(cols))})", vals)

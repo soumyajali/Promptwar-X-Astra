@@ -69,6 +69,23 @@ CREATE TABLE IF NOT EXISTS report_links (
     created_at  TEXT NOT NULL,
     PRIMARY KEY (report_id, related_id)
 );
+
+CREATE TABLE IF NOT EXISTS users (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    name           TEXT NOT NULL,
+    email          TEXT NOT NULL UNIQUE,
+    password_hash  TEXT NOT NULL,
+    role           TEXT NOT NULL CHECK (role IN ('citizen', 'authority')),
+    title          TEXT,
+    created_at     TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+    token_hash  TEXT PRIMARY KEY,
+    user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at  TEXT NOT NULL,
+    expires_at  TEXT NOT NULL
+);
 """
 
 _lock = threading.RLock()
@@ -88,7 +105,7 @@ _conn: sqlite3.Connection | None = None
 
 # Columns added after the first release. Existing databases are upgraded in place on start.
 MIGRATIONS = {
-    "reports": {"location_source": "TEXT", "location_accuracy_m": "REAL"},
+    "reports": {"location_source": "TEXT", "location_accuracy_m": "REAL", "citizen_id": "INTEGER"},
 }
 
 

@@ -9,7 +9,7 @@ import { LEVEL_ORDER, OPEN, STATUS_LABEL, timeAgo } from '../../lib/format'
 import type { AuthorityReport, Status } from '../../lib/types'
 import { useLiveQuery } from '../../store/live'
 
-const DEPTS: Record<string, string> = { roads: 'Roads and Infrastructure', sanitation: 'Sanitation', water: 'Water and Drainage', electricity: 'Electricity', safety: 'Public Safety', admin: 'General Administration' }
+const DEPTS: Record<string, string> = { roads: 'Road Maintenance', sanitation: 'Sanitation', water: 'Water and Drainage', electricity: 'Electricity', safety: 'Public Safety', admin: 'General Administration' }
 type Sort = 'priority' | 'newest' | 'oldest' | 'updated'
 
 export function Reports() {

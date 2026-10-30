@@ -310,3 +310,6 @@ p { margin: 0; }
 .map-beacon.is-on { box-shadow: 0 0 0 2px #F0EBDD, 0 0 26px 10px rgba(228, 91, 50, .6); }
 .map-fallback--top-right { left: auto; bottom: auto; top: 12px; right: 12px; max-width: 320px; font-size: 12.5px; }
 .map-fallback--bottom-center { left: 50%; right: auto; bottom: 14px; transform: translateX(-50%); max-width: min(440px, calc(100% - 28px)); font-size: 12.5px; }
+/* Rows of report IDs wrap between IDs, never inside one. */
+p:has(> a.id + a.id) { display: flex; flex-wrap: wrap; gap: 4px 10px; }
+p:has(> a.id + a.id) > a.id { margin-right: 0 !important; }

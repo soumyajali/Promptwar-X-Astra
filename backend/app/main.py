@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 
 from . import config, db
 from .events import broker
-from .routers import authority, public
+from .routers import accounts, authority, public
 
 log = logging.getLogger("civicpulse")
 
@@ -23,6 +23,9 @@ async def lifespan(app: FastAPI):
     broker.bind_loop(asyncio.get_running_loop())
     db.get_conn()
     config.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    from .auth import seed_accounts
+
+    seed_accounts()
     if config.AUTO_SEED:
         from .seed import seed
 
@@ -83,6 +86,7 @@ async def events(request: Request):
 
 
 app.include_router(public.router)
+app.include_router(accounts.router)
 app.include_router(authority.router)
 app.include_router(authority.protected)
 config.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)

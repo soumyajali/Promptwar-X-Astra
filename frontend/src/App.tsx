@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { ErrorBoundary, Skeleton } from './components/ui'
 import { CommandLayout } from './layouts/CommandLayout'
 import { PublicLayout } from './layouts/PublicLayout'
+import { Account } from './pages/Account'
 import { Landing } from './pages/Landing'
 import { NotFound } from './pages/NotFound'
 import { Report } from './pages/Report'
@@ -34,6 +35,8 @@ export default function App() {
               <Route path="report" element={<Report />} />
               <Route path="track" element={<Track />} />
               <Route path="track/:id" element={<Track />} />
+              <Route path="account" element={<Account />} />
+              <Route path="login" element={<Account />} />
               <Route path="*" element={<NotFound />} />
             </Route>
             {/* Design exploration — separate from the live app; nothing here changes existing pages. */}

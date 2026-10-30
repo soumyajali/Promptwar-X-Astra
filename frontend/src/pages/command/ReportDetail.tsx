@@ -195,7 +195,7 @@ function AssignForm({ r, meta, onDone }: { r: RD; meta: Meta; onDone: (r: RD, m:
   const officers = meta.officers[dept] ?? []
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    run(async () => onDone(await api.assign(r.id, dept, officer || undefined), `Assigned to ${meta.departments[dept]}`))
+    run(async () => onDone(await api.assign(r.id, dept, officer.trim() || undefined), `Assigned to ${meta.departments[dept]}`))
   }
   return (
     <form onSubmit={submit} className="stack">
@@ -207,13 +207,12 @@ function AssignForm({ r, meta, onDone }: { r: RD; meta: Meta; onDone: (r: RD, m:
       </div>
       <div className="field">
         <label htmlFor="off">Responsible officer</label>
-        <select id="off" className="select" value={officer} onChange={(e) => setOfficer(e.target.value)}>
-          <option value="">— Not yet —</option>
-          {officers.map((o) => <option key={o} value={o}>{o}</option>)}
-        </select>
+        <input id="off" className="input" list="off-roster" value={officer} maxLength={80} placeholder="Type a name or pick from the roster"
+          onChange={(e) => setOfficer(e.target.value)} />
+        <datalist id="off-roster">{officers.map((o) => <option key={o} value={o} />)}</datalist>
       </div>
       <Err e={error} />
-      <Submit busy={busy} disabled={dept === r.department && (officer || null) === r.officer}>Save assignment</Submit>
+      <Submit busy={busy} disabled={dept === r.department && (officer.trim() || null) === r.officer}>Save assignment</Submit>
     </form>
   )
 }

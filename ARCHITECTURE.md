@@ -79,6 +79,15 @@ reason to the citizen. Invalid transitions return `409` with a readable message.
 5. `broker.publish("report.created")` → every open browser refetches dashboards, map, hotspots, lists.
 6. Response: the citizen's tracking view plus full analysis.
 
+### Accounts (`app/auth.py`, `app/routers/accounts.py`)
+
+`POST /api/auth/register` (citizens only), `POST /api/auth/login` (`role` must match the account, so citizens cannot
+use the authority portal), `POST /api/auth/logout`, `GET /api/auth/me`, `GET /api/citizen/reports`. Passwords are
+salted PBKDF2-SHA256 (200 000 iterations); tokens are 256-bit random values stored as SHA-256 hashes with a 12-hour
+expiry. `require_authority` accepts an authority bearer token (actor recorded as "Name (Title)" in the timeline) or the
+legacy `X-Authority-Code` header used by tests. Demo accounts are seeded at start-up if missing; demo reset keeps
+accounts.
+
 ## Frontend (`frontend/src`)
 
 | Path | Responsibility |

@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import secrets
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
-from .. import config, repository as repo
+from .. import auth, config, repository as repo
 from ..schemas import Preview, public_feed_item, tracking_view, validate_submission
 from ..services import workflow as wf
 from ..services.analytics import metrics, distributions
@@ -65,6 +65,7 @@ async def submit_report(
     location_source: str | None = Form(None),
     location_accuracy_m: float | None = Form(None),
     image: UploadFile | None = File(None),
+    user: dict | None = Depends(auth.optional_user),
 ):
     category = category or None
     location_source = location_source or None
@@ -95,6 +96,8 @@ async def submit_report(
         "lat": lat, "lng": lng, "ward": ward, "reporter_name": (reporter_name or "").strip() or None,
         "reporter_contact": (reporter_contact or "").strip() or None, "affected_people": affected_people,
         "image_path": image_name, "channel": "web",
+        # Signed-in citizens see this report in "My reports"; anonymous reporting still works.
+        "citizen_id": user["id"] if user and user["role"] == "citizen" else None,
         # Where the pin came from: the citizen's device (with its stated accuracy), a map tap, or the demo button.
         "location_source": location_source if lat is not None else None,
         "location_accuracy_m": round(location_accuracy_m, 1) if (location_accuracy_m and location_source == "device") else None,

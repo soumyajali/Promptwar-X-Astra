@@ -42,7 +42,7 @@ CATEGORIES = {
 }
 
 DEPARTMENTS = {
-    "roads": "Roads and Infrastructure",
+    "roads": "Road Maintenance",
     "sanitation": "Sanitation",
     "water": "Water and Drainage",
     "electricity": "Electricity",
