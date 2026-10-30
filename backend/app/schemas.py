@@ -137,6 +137,8 @@ def tracking_view(r: dict) -> dict:
         "department": r.get("department"),
         "department_label": D.get(r["department"]) if r.get("department") else None,
         "officer_assigned": bool(r.get("officer")),
+        # Responsible officer is a public role (municipal staff), not citizen data; shown so citizens know who owns the work.
+        "officer": r.get("officer"),
         "resolution_note": r.get("resolution_note"),
         "resolved_at": r.get("resolved_at"),
         "analysis": {

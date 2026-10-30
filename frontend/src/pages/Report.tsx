@@ -1,8 +1,8 @@
-import { ArrowRight, Camera, Check, CircleAlert, CircleCheck, Copy, Crosshair, ImagePlus, Loader2, MapPin, MousePointerClick, Sparkles, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Camera, Check, CircleAlert, CircleCheck, Copy, Crosshair, ImagePlus, Loader2, MapPin, MousePointerClick, Radar, Sparkles, X, Zap } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { CityMap } from '../components/CityMap'
-import { CategoryTag, PageBanner, PriorityBadge, ScoreBreakdown, StatusPill } from '../components/ui'
+import { CategoryTag, PriorityBadge, ScoreBreakdown, StatusPill } from '../components/ui'
 import { ApiError, api } from '../lib/api'
 import { CATEGORY_KEYS, CATEGORY_META, DEMO_EXAMPLE } from '../lib/constants'
 import { distance, pct } from '../lib/format'
@@ -39,6 +39,8 @@ export function Report() {
   const [preview, setPreview] = useState<Preview | null>(null)
   const [result, setResult] = useState<TrackView | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const [step, setStep] = useState(0)
+  const topRef = useRef<HTMLDivElement>(null)
 
   // Live classifier hint (debounced). Nothing is stored by this call.
   useEffect(() => {
@@ -110,12 +112,33 @@ export function Report() {
     return e
   }
 
+  /* Per-step checks, so problems surface on the step that has them. */
+  const stepErrors = (i: number): Record<string, string> => {
+    const all = validate()
+    const keys = [['description'], ['location_text'], [], ['reporter_contact', 'affected_people']][i] ?? []
+    return Object.fromEntries(Object.entries(all).filter(([k]) => keys.includes(k)))
+  }
+  const goStep = (i: number) => {
+    setStep(i)
+    setFormError(null)
+    requestAnimationFrame(() => topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
+  const next = () => {
+    const e = stepErrors(step)
+    setErrors((prev) => ({ ...prev, ...Object.fromEntries(Object.keys(validate()).map((k) => [k, ''])), ...e }))
+    if (Object.keys(e).length) { setFormError('Please fix the highlighted fields.'); return }
+    goStep(Math.min(3, step + 1))
+  }
+  const STEP_FOR: Record<string, number> = { description: 0, category: 0, location_text: 1, location: 1, image: 2, reporter_contact: 3, affected_people: 3, reporter_name: 3 }
+
   const submit = async (ev: FormEvent) => {
     ev.preventDefault()
+    // Enter inside an earlier step's field moves forward instead of submitting before review.
+    if (step < 3) { next(); return }
     setFormError(null)
     const e = validate()
     setErrors(e)
-    if (Object.keys(e).length) { setFormError('Please fix the highlighted fields.'); return }
+    if (Object.keys(e).length) { setFormError('Please fix the highlighted fields.'); goStep(Math.min(...Object.keys(e).map((k) => STEP_FOR[k] ?? 0))); return }
     const fd = new FormData()
     fd.set('description', description.trim())
     fd.set('location_text', location.trim())
@@ -134,33 +157,50 @@ export function Report() {
       setResult(r)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err) {
-      if (err instanceof ApiError) { setErrors(err.fields); setFormError(err.message) } else setFormError('Something went wrong. Please try again.')
+      if (err instanceof ApiError) {
+        setErrors(err.fields); setFormError(err.message)
+        const steps = Object.keys(err.fields).map((k) => STEP_FOR[k]).filter((x) => x != null)
+        if (steps.length) goStep(Math.min(...steps))
+      } else setFormError('Something went wrong. Please try again.')
     } finally { setSubmitting(false) }
   }
 
   if (result) return <Submitted r={result} onAnother={() => {
-    setResult(null); setDescription(''); setLocation(''); setPin(null); setGeo({ state: 'idle' }); setImage(null); setImageUrl(null); setCategory(''); setAffected('')
+    setResult(null); setStep(0); setDescription(''); setLocation(''); setPin(null); setGeo({ state: 'idle' }); setImage(null); setImageUrl(null); setCategory(''); setAffected('')
   }} />
 
+  const STEPS = ['Report details', 'Location & map', 'Add evidence', 'Review & submit']
+  const done = [description.trim().length >= 15, !!location.trim() && !!pin, !!image, false]
   return (
-    <>
-    <PageBanner eyebrow="Capture · Citizen report" title="Report an issue">
-      <p className="banner__lede">No account needed. Describe what you see, pin where it is, add a photo if you can. You’ll get a tracking ID straight away.</p>
-      <button type="button" className="btn btn--ghost btn--glass btn--sm" onClick={fillDemo}><Sparkles />Fill with demo example</button>
-    </PageBanner>
-    <div className="report wrap">
-      <form className="report__grid" onSubmit={submit} noValidate>
+    <div className="wizard wrap" ref={topRef}>
+      <nav className="wizard__rail" aria-label="Report steps">
+        <ol>
+          {STEPS.map((label, i) => (
+            <li key={label}>
+              <button type="button" className={`wstep ${i === step ? 'is-on' : ''} ${done[i] && i !== step ? 'is-done' : ''}`} aria-current={i === step ? 'step' : undefined} onClick={() => goStep(i)}>
+                <span className="wstep__n">{done[i] && i !== step ? <Check size={14} /> : i + 1}</span>{label}
+              </button>
+            </li>
+          ))}
+        </ol>
+        <button type="button" className="btn btn--ghost btn--sm wizard__demo" onClick={fillDemo}><Sparkles />Fill with demo example</button>
+      </nav>
+      <form className="wizard__main" onSubmit={submit} noValidate>
+        <header className="wizard__head">
+          <h1 className="serif">Report an issue</h1>
+          <p>Help us build a cleaner, safer and better city. No account needed.</p>
+        </header>
         <div className="report__form">
           {/* 1 */}
-          <section className="step" role="group" aria-labelledby="step-1">
-            <h2 className="step__title" id="step-1"><span className="step__n mono">1</span> What’s the problem?</h2>
-            <div className="chips" role="radiogroup" aria-label="Category (optional)">
+          <section className="step" role="group" aria-labelledby="step-1" hidden={step !== 0}>
+            <h2 className="step__title" id="step-1">Issue category <span className="muted">(optional)</span></h2>
+            <div className="cat-tiles" role="radiogroup" aria-label="Category (optional)">
               {CATEGORY_KEYS.map((k) => {
                 const Icon = CATEGORY_META[k].icon
                 return (
                   <button type="button" key={k} role="radio" aria-checked={category === k}
-                    className={`chip ${category === k ? 'is-on' : ''}`} onClick={() => setCategory(category === k ? '' : k)}>
-                    <Icon aria-hidden />{CATEGORY_META[k].short}
+                    className={`cat-tile ${category === k ? 'is-on' : ''}`} onClick={() => setCategory(category === k ? '' : k)}>
+                    <Icon aria-hidden /><span>{CATEGORY_META[k].label}</span>
                   </button>
                 )
               })}
@@ -192,8 +232,8 @@ export function Report() {
           </section>
 
           {/* 2 */}
-          <section className="step" role="group" aria-labelledby="step-2">
-            <h2 className="step__title" id="step-2"><span className="step__n mono">2</span> Where is it?</h2>
+          <section className="step" role="group" aria-labelledby="step-2" hidden={step !== 1}>
+            <h2 className="step__title" id="step-2">Where is it?</h2>
             <div className="field">
               <label htmlFor="loc">Landmark, street or area</label>
               <input id="loc" className="input" value={location} maxLength={200} aria-invalid={!!errors.location_text}
@@ -235,8 +275,8 @@ export function Report() {
           </section>
 
           {/* 3 */}
-          <section className="step" role="group" aria-labelledby="step-3">
-            <h2 className="step__title" id="step-3"><span className="step__n mono">3</span> Add a photo <span className="muted">(optional)</span></h2>
+          <section className="step" role="group" aria-labelledby="step-3" hidden={step !== 2}>
+            <h2 className="step__title" id="step-3">Add evidence <span className="muted">(optional)</span></h2>
             <input ref={fileRef} id="photo" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden
               onChange={(e) => pickImage(e.target.files?.[0])} />
             {imageUrl ? (
@@ -261,8 +301,15 @@ export function Report() {
           </section>
 
           {/* 4 */}
-          <section className="step" role="group" aria-labelledby="step-4">
-            <h2 className="step__title" id="step-4"><span className="step__n mono">4</span> A little more <span className="muted">(optional)</span></h2>
+          <section className="step" role="group" aria-labelledby="step-4" hidden={step !== 3}>
+            <h2 className="step__title" id="step-4">Review &amp; submit</h2>
+            <dl className="review">
+              <div><dt>Category</dt><dd>{category ? CATEGORY_META[category].label : preview?.ready ? <>Auto: {preview.label} <span className="muted">({pct(preview.confidence ?? 0)})</span></> : 'Detected from your description'}</dd><button type="button" className="review__edit" onClick={() => goStep(0)}>Edit</button></div>
+              <div><dt>Description</dt><dd>{description.trim() || <span className="muted">Not written yet</span>}</dd><button type="button" className="review__edit" onClick={() => goStep(0)}>Edit</button></div>
+              <div><dt>Location</dt><dd>{location.trim() || <span className="muted">No landmark</span>}{pin && <span className="mono muted"> · {pin.lat.toFixed(5)}, {pin.lng.toFixed(5)} ({pin.source === 'device' ? 'your device' : pin.source === 'map' ? 'map pin' : 'demo'})</span>}</dd><button type="button" className="review__edit" onClick={() => goStep(1)}>Edit</button></div>
+              <div><dt>Photo</dt><dd>{image ? image.name : <span className="muted">None</span>}</dd><button type="button" className="review__edit" onClick={() => goStep(2)}>Edit</button></div>
+            </dl>
+            <h3 className="review__sub">A little more <span className="muted">(optional)</span></h3>
             <div className="field-grid">
               <div className="field">
                 <label htmlFor="aff">People affected (estimate)</label>
@@ -283,28 +330,27 @@ export function Report() {
           </section>
 
           {formError && <div className="notice notice--danger" role="alert"><CircleAlert />{formError}</div>}
-          <div className="report__submit">
-            <button className="btn btn--signal" disabled={submitting}>
-              {submitting ? <><Loader2 className="spin" />Analysing your report…</> : <>Submit report <ArrowRight /></>}
-            </button>
-            <span className="muted small">By submitting you agree this is a genuine report.</span>
+          <div className="wizard__nav">
+            {step > 0 ? <button type="button" className="btn btn--ghost" onClick={() => goStep(step - 1)}><ArrowLeft />Back</button> : <span />}
+            {step < 3
+              ? <button key="next" type="button" className="btn btn--signal wizard__next" onClick={next}>Next: {STEPS[step + 1]} <ArrowRight /></button>
+              : <button key="submit" type="submit" className="btn btn--signal wizard__next" disabled={submitting}>
+                  {submitting ? <><Loader2 className="spin" />Analysing your report…</> : <>Submit report <ArrowRight /></>}
+                </button>}
           </div>
         </div>
-
-        <aside className="report__aside">
-          <div className="aside-card">
-            <span className="eyebrow">What happens next</span>
-            <ol className="next">
-              <li><strong>Instant analysis.</strong> Category, summary, priority score and nearby similar reports — shown to you right after you submit.</li>
-              <li><strong>Review & assignment.</strong> The ward office assigns the right department.</li>
-              <li><strong>Progress you can see.</strong> Track every status change with your ID.</li>
-            </ol>
-            <p className="muted small">Reporting the same problem as a neighbour? Still report it — similar reports are linked, which raises the priority.</p>
-          </div>
-        </aside>
       </form>
+      <aside className="wizard__aside">
+        <img src="/img/street-night.jpg" alt="" loading="lazy" />
+        <h2 className="serif">Your report makes a difference</h2>
+        <ul>
+          <li><Zap aria-hidden />Quick response: routed to the right department</li>
+          <li><Sparkles aria-hidden />AI-powered analysis the moment you submit</li>
+          <li><Radar aria-hidden />Track progress live with your report ID</li>
+        </ul>
+        <p className="muted small">Same problem as a neighbour? Still report it. Similar reports are linked, which raises the priority.</p>
+      </aside>
     </div>
-    </>
   )
 }
 

@@ -1,138 +1,163 @@
-import { ArrowUpRight, Lightbulb } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { CityMap } from '../../components/CityMap'
-import { Metric, PageHead, Panel, ReportRows } from '../../components/command'
-import { ErrorState, Skeleton } from '../../components/ui'
+import { ArrowUpRight, CircleCheck, ClipboardList, FileText, Inbox, Lightbulb, TriangleAlert } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Card, Donut, DonutLegend, Ring, StatTile } from '../../components/obs'
+import { ErrorState, Skeleton, StatusPill } from '../../components/ui'
 import { api } from '../../lib/api'
-import { CHART, LEVEL_COLOR } from '../../lib/constants'
-import { fmtHours } from '../../lib/format'
+import { CATEGORY_COLOR, CATEGORY_META, CHART, LEVEL_COLOR } from '../../lib/constants'
+import { fmtHours, timeAgo } from '../../lib/format'
 import { useLiveQuery } from '../../store/live'
 
-export const tooltipStyle = { background: '#1D2F27', border: '1px solid rgba(236,232,220,.22)', borderRadius: 8, fontSize: 13, color: '#ECE8DC' }
+export const tooltipStyle = { background: '#172D24', border: '1px solid #294238', borderRadius: 8, fontSize: 13, color: '#F0EBDD' }
+
+/** Week-over-week change, shown only when the previous week has data to compare against. */
+function Delta({ now, prev, label = 'vs previous 7 days', invert = false }: { now: number; prev: number; label?: string; invert?: boolean }) {
+  if (!prev) return <span className="delta">{now} in the last 7 days</span>
+  const pct = Math.round(((now - prev) / prev) * 100)
+  const up = pct >= 0
+  const good = invert ? !up : up
+  return <span className={`delta ${good ? 'delta--good' : 'delta--bad'}`}>{up ? '▲' : '▼'} {Math.abs(pct)}% <span>{label}</span></span>
+}
 
 export function Overview() {
   const dash = useLiveQuery(() => api.dashboard())
   const reports = useLiveQuery(() => api.reports())
+  const nav = useNavigate()
   if (dash.error) return <ErrorState error={dash.error} onRetry={dash.reload} />
   const d = dash.data
   const rs = reports.data ?? []
   const byId = new Map(rs.map((r) => [r.id, r]))
   const m = d?.metrics
+  const catData = (d?.distributions.category ?? []).filter((c) => c.open).sort((a, b) => b.open - a.open)
+    .map((c) => ({ key: c.key, label: CATEGORY_META[c.key].label, value: c.open, color: CATEGORY_COLOR[c.key] }))
+  const priData = (d?.distributions.priority ?? []).map((p) => ({ key: p.key, label: p.label, value: p.count, color: LEVEL_COLOR[p.key] }))
+  const wl = (d?.workload ?? []).filter((w) => w.open || w.resolved)
+  const wlMax = Math.max(1, ...wl.map((w) => w.open))
+  const wlTotal = wl.reduce((a, w) => a + w.open, 0) || 1
 
   return (
-    <div className="cpage">
-      <PageHead eyebrow="Reveal · Overview" title="Today in Demo City"
-        actions={<Link to="/command/briefs" className="btn btn--civic btn--sm">Open action brief <ArrowUpRight /></Link>}>
-        Every figure below is calculated from the database on each change. Nothing is pre-filled.
-      </PageHead>
+    <div className="cpage ops">
+      <header className="ops__head">
+        <div>
+          <h1 className="serif cpage__title">City Operations Center</h1>
+          <p className="cpage__lede">Live figures calculated from the report database on every change.</p>
+        </div>
+        <Link to="/command/briefs" className="btn btn--signal btn--sm"><FileText />Open action brief</Link>
+      </header>
 
-      <dl className="metrics">
-        {m ? (
+      <section className="ops__stats">
+        {m && d ? (
           <>
-            <Metric label="Total reports" value={m.total} />
-            <Metric label="Open" value={m.open} note={`${m.unassigned_open} unassigned`} />
-            <Metric label="Critical · open" value={m.critical_open} tone="signal" />
-            <Metric label="High · open" value={m.high_open} tone="ochre" />
-            <Metric label="Resolved" value={m.resolved} tone="sage" />
-            <Metric label="Resolution rate" value={`${m.resolution_rate}%`} note="resolved ÷ (resolved + open)" />
-            <Metric label="Avg. resolution" value={fmtHours(m.avg_resolution_hours)} note={m.avg_resolution_note ?? `${m.resolved} resolved reports`} />
-            <Metric label="Linked duplicates" value={m.linked_duplicates} />
+            <StatTile icon={ClipboardList} label="Total reports" value={m.total}><Delta now={d.week.received[0]} prev={d.week.received[1]} label="received vs prior week" /></StatTile>
+            <StatTile icon={Inbox} label="Open reports" value={m.open} note={`${m.unassigned_open} unassigned`} />
+            <StatTile icon={TriangleAlert} label="Critical reports" value={m.critical_open} tone="critical"><Delta now={d.week.critical[0]} prev={d.week.critical[1]} label="new critical vs prior week" invert /></StatTile>
+            <StatTile icon={CircleCheck} label="Resolved reports" value={m.resolved} tone="ok" note={`Avg. ${fmtHours(m.avg_resolution_hours)} to resolve`} />
+            <div className="stat stat--ring">
+              <Ring value={m.resolution_rate} size={62}><b className="mono ring__v">{Math.round(m.resolution_rate)}%</b></Ring>
+              <div className="stat__body"><span className="stat__label">Resolution rate</span><span className="stat__value">{m.resolved} / {m.resolved + m.open}</span><span className="stat__note">resolved of resolved + open</span></div>
+            </div>
           </>
-        ) : Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} h={86} />)}
-      </dl>
+        ) : Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} h={92} />)}
+      </section>
 
-      <div className="grid-12">
-        <Panel title="Reports received vs resolved" note="Last 21 days" className="span-8">
+      <section className="ops__row3">
+        <Card title="Reports trend" sub="Received and resolved per day · last 21 days" action={<span className="legend-inline"><i style={{ background: CHART.amber }} />Received <i style={{ background: CHART.civic }} />Resolved</span>}>
           {d ? (
-            <div className="chart" style={{ height: 240 }}>
+            <div className="chart" style={{ height: 230 }}>
               <ResponsiveContainer>
-                <AreaChart data={d.trend} margin={{ top: 8, right: 20, left: -24, bottom: 0 }}>
-                  <CartesianGrid stroke={CHART.rule} strokeDasharray="3 3" vertical={false} />
+                <AreaChart data={d.trend} margin={{ top: 8, right: 12, left: -26, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="gRec" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={CHART.amber} stopOpacity={.35} /><stop offset="100%" stopColor={CHART.amber} stopOpacity={0} /></linearGradient>
+                    <linearGradient id="gRes" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={CHART.civic} stopOpacity={.3} /><stop offset="100%" stopColor={CHART.civic} stopOpacity={0} /></linearGradient>
+                  </defs>
+                  <CartesianGrid stroke={CHART.rule} vertical={false} />
                   <XAxis dataKey="label" tick={{ fontSize: 11, fill: CHART.muted }} interval={3} tickLine={false} axisLine={{ stroke: CHART.rule }} />
                   <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: CHART.muted }} tickLine={false} axisLine={false} />
                   <Tooltip contentStyle={tooltipStyle} />
-                  <Area type="monotone" dataKey="received" name="Received" stroke={CHART.signal} fill={CHART.signal} fillOpacity={.12} strokeWidth={2} />
-                  <Area type="monotone" dataKey="resolved" name="Resolved" stroke={CHART.civic} fill={CHART.civic} fillOpacity={.12} strokeWidth={2} />
+                  <Area type="monotone" dataKey="received" name="Received" stroke={CHART.amber} fill="url(#gRec)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="resolved" name="Resolved" stroke={CHART.civic} fill="url(#gRes)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-          ) : <Skeleton h={240} />}
-        </Panel>
+          ) : <Skeleton h={230} />}
+        </Card>
+        <Card title="Category distribution" sub="Open reports">
+          {d ? <div className="donut-row"><Donut data={catData} label="Open" /><DonutLegend data={catData} /></div> : <Skeleton h={180} />}
+        </Card>
+        <Card title="Priority distribution" sub="Open reports">
+          {d ? <div className="donut-row"><Donut data={priData} label="Open" /><DonutLegend data={priData} /></div> : <Skeleton h={180} />}
+        </Card>
+      </section>
 
-        <Panel title="Open by priority" className="span-4">
-          {d ? (
-            <div className="prio-stack">
-              <div className="prio-bar" role="img" aria-label="Open reports by priority">
-                {d.distributions.priority.map((p) => p.count > 0 && (
-                  <span key={p.key} style={{ flex: p.count, background: LEVEL_COLOR[p.key] }} title={`${p.label}: ${p.count}`} />
-                ))}
-              </div>
-              <ul className="prio-legend">
-                {d.distributions.priority.map((p) => (
-                  <li key={p.key}><i style={{ background: LEVEL_COLOR[p.key] }} />{p.label}<b className="mono">{p.count}</b></li>
-                ))}
-              </ul>
-            </div>
-          ) : <Skeleton h={160} />}
-        </Panel>
-
-        <Panel title="Critical issues" note="Open · highest score first" className="span-5">
-          <ReportRows reports={(d?.critical_ids ?? []).map((id) => byId.get(id)!).filter(Boolean).slice(0, 5)} empty="No open critical reports." />
-        </Panel>
-
-        <Panel title="Geographic hotspots" className="span-7" action={<Link to="/command/hotspots" className="small link-id">All hotspots</Link>}>
-          <div className="hs-overview">
-            <div className="hs-overview__map">
-              {d && <CityMap height={280} scrollZoom={false} hotspots={d.hotspots}
-                points={rs.filter((r) => r.status !== 'resolved' && r.status !== 'rejected').map((r) => ({ id: r.id, lat: r.lat, lng: r.lng, level: r.priority_level, status: r.status, title: r.headline, score: r.priority_score }))} />}
-            </div>
-            <ol className="hs-mini">
-              {d?.hotspots.slice(0, 4).map((h) => (
-                <li key={h.id}>
-                  <span className="serif hs-mini__id">{h.id}</span>
-                  <div><strong>{h.location}</strong><p className="muted small">{h.count} reports · {h.critical_count} critical · {h.dominant_label}</p></div>
-                </li>
-              ))}
-            </ol>
+      <section className="ops__row3 ops__row3--b">
+        <Card title="Recent reports" action={<Link to="/command/reports" className="small link-id">View all</Link>} pad={false}>
+          <div className="table-wrap table-wrap--flat">
+            <table className="table table--ops">
+              <thead><tr><th>ID</th><th>Issue</th><th className="hide-md hide-lg">Location</th><th>Priority</th><th>Status</th><th className="hide-md">Time</th></tr></thead>
+              <tbody>
+                {rs.slice(0, 6).map((r) => {
+                  const Icon = CATEGORY_META[r.category].icon
+                  return (
+                    <tr key={r.id} onClick={() => nav(`/command/reports/${r.id}`)} className="is-click">
+                      <td><Link to={`/command/reports/${r.id}`} className="id link-id" onClick={(e) => e.stopPropagation()}>{r.id}</Link></td>
+                      <td><span className="cell-cat"><span className={`sev sev--${r.priority_level}`}><Icon aria-hidden /></span>{CATEGORY_META[r.category].short}</span></td>
+                      <td className="hide-md hide-lg muted small cell-trunc">{r.location_text}</td>
+                      <td><span className={`lvl lvl--${r.priority_level}`}>{r.priority_level[0].toUpperCase() + r.priority_level.slice(1)}</span></td>
+                      <td><StatusPill status={r.status} /></td>
+                      <td className="hide-md mono small muted nowrap">{timeAgo(r.created_at)}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
-        </Panel>
+        </Card>
+        <Card title="Critical issues" sub="Open · highest score first">
+          <ul className="crit-list">
+            {(d?.critical_ids ?? []).map((id) => byId.get(id)).filter(Boolean).slice(0, 5).map((r) => {
+              const Icon = CATEGORY_META[r!.category].icon
+              return (
+                <li key={r!.id}>
+                  <Link to={`/command/reports/${r!.id}`} className="crit-item">
+                    <span className="sev sev--critical"><Icon aria-hidden /></span>
+                    <span className="crit-item__main"><b>{CATEGORY_META[r!.category].short} · {r!.location_text}</b><span className="muted small">{r!.department_label ?? 'Unassigned'} · score {r!.priority_score}</span></span>
+                    <span className="mono small muted nowrap">{timeAgo(r!.created_at)}</span>
+                  </Link>
+                </li>
+              )
+            })}
+            {d && d.critical_ids.length === 0 && <li className="muted small">No open critical reports.</li>}
+          </ul>
+        </Card>
+        <Card title="Department workload" sub="Open assigned reports">
+          <ul className="wl-list">
+            {wl.map((w) => (
+              <li key={w.key}>
+                <span className="wl-list__name">{w.label}</span>
+                <span className="wl-list__bar"><i style={{ width: `${(w.open / wlMax) * 100}%`, background: w.critical ? CHART.signal : CHART.amber }} /></span>
+                <b className="mono">{w.open}</b>
+                <em className="mono">{Math.round((w.open / wlTotal) * 100)}%</em>
+              </li>
+            ))}
+          </ul>
+          {m && <p className="card__foot muted small">{m.unassigned_open} open reports have no department yet. Red bars hold a critical report.</p>}
+        </Card>
+      </section>
 
-        <Panel title="Category distribution" note="Total · open (dark)" className="span-6">
-          {d ? (
-            <div className="chart" style={{ height: 260 }}>
-              <ResponsiveContainer>
-                <BarChart data={d.distributions.category} layout="vertical" margin={{ top: 0, right: 16, left: 8, bottom: 0 }} barGap={-14}>
-                  <XAxis type="number" hide allowDecimals={false} />
-                  <YAxis type="category" dataKey="label" width={150} tick={{ fontSize: 12, fill: CHART.ink }} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(236,232,220,.05)' }} />
-                  <Bar dataKey="total" name="Total" fill={CHART.rule} barSize={14} radius={2} />
-                  <Bar dataKey="open" name="Open" fill={CHART.ink} barSize={14} radius={2} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          ) : <Skeleton h={260} />}
-        </Panel>
-
-        <Panel title="Department workload" note="Open assigned reports" className="span-6">
-          {d ? (
-            <div className="chart" style={{ height: 260 }}>
-              <ResponsiveContainer>
-                <BarChart data={d.workload} layout="vertical" margin={{ top: 0, right: 16, left: 8, bottom: 0 }}>
-                  <XAxis type="number" hide allowDecimals={false} />
-                  <YAxis type="category" dataKey="label" width={170} tick={{ fontSize: 12, fill: CHART.ink }} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(236,232,220,.05)' }} />
-                  <Bar dataKey="open" name="Open" barSize={14} radius={2}>
-                    {d.workload.map((w) => <Cell key={w.key} fill={w.critical ? CHART.signal : CHART.civic} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          ) : <Skeleton h={260} />}
-          <p className="panel__note">Coral bars hold at least one critical report.</p>
-        </Panel>
-
-        <Panel title="Insights" note="Derived from the figures above" className="span-5">
+      <section className="ops__row2">
+        <Card title="Geographic hotspots" sub="DBSCAN · 350 m · ≥ 3 open reports" action={<Link to="/command/map" className="small link-id">Open map <ArrowUpRight size={13} /></Link>}>
+          <ol className="hs-rank">
+            {d?.hotspots.map((h) => (
+              <li key={h.id}>
+                <span className="hs-rank__id serif">{h.id}</span>
+                <div className="hs-rank__main"><b>{h.location}</b><span className="muted small">{h.ward} · mostly {h.dominant_label.toLowerCase()}</span></div>
+                <span className="hs-rank__nums mono"><b>{h.count}</b> reports · <b className={h.critical_count ? 'is-crit' : ''}>{h.critical_count}</b> critical</span>
+                <span className="hs-rank__bar"><i style={{ width: `${h.score}%` }} /></span>
+              </li>
+            ))}
+          </ol>
+        </Card>
+        <Card title="AI-generated insights" sub="Rules applied to the figures above">
           <ul className="insights">
             {d?.insights.map((i, k) => (
               <li key={k}>
@@ -145,12 +170,8 @@ export function Overview() {
               </li>
             ))}
           </ul>
-        </Panel>
-
-        <Panel title="Recent reports" className="span-7" action={<Link to="/command/reports" className="small link-id">All reports</Link>}>
-          <ReportRows reports={rs.slice(0, 5)} />
-        </Panel>
-      </div>
+        </Card>
+      </section>
     </div>
   )
 }

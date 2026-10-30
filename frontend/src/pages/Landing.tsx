@@ -1,11 +1,12 @@
-import { ArrowRight, ArrowUpRight, Copy, GitMerge, Layers, MapPinned, ScanText, Scale, Siren } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, CircleCheck, ClipboardList, Copy, GitMerge, Inbox, Layers, MapPin, MapPinned, ScanText, Scale, Siren, TriangleAlert } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { CityPlate } from '../components/CityPlate'
 import { CategoryTag, ErrorState, LiveIndicator, PriorityBadge, ScoreBreakdown, Skeleton, StatusPill } from '../components/ui'
 import { api } from '../lib/api'
-import { CATEGORY_KEYS, CATEGORY_META } from '../lib/constants'
+import { CATEGORY_COLOR, CATEGORY_KEYS, CATEGORY_META } from '../lib/constants'
 import { fmtHours, timeAgo } from '../lib/format'
 import { useLiveQuery } from '../store/live'
+import { StatTile } from '../components/obs'
 
 const STAGES = [
   { n: '01', name: 'Capture', text: 'A citizen reports with a description, a pin on the map and a photo. No account, no forms to decode. They get a tracking ID immediately.', algo: 'Validated intake · image checks · coordinates' },
@@ -42,35 +43,93 @@ export function Landing() {
   return (
     <div className="landing">
       {/* ---------------- HERO ---------------- */}
-      <section className="hero">
-        <img className="hero__img" src="/img/hero-city.jpg" srcSet="/img/hero-city-sm.jpg 1200w, /img/hero-city.jpg 2400w" sizes="100vw" alt="" fetchPriority="high" />
-        <div className="hero__shade" aria-hidden />
-        <div className="wrap hero__content">
-          <div className="hero__kicker">
-            <span className="eyebrow eyebrow--light">Civic intelligence · {s?.demo_area.name ?? 'Demo City'}</span>
-            <LiveIndicator light />
+      <section className="ohero">
+        <img className="ohero__img" src="/img/hero-city.jpg" srcSet="/img/hero-city-sm.jpg 1200w, /img/hero-city.jpg 2400w" sizes="100vw" alt="" fetchPriority="high" />
+        <div className="ohero__shade" aria-hidden />
+        <div className="wrap ohero__grid">
+          <div className="ohero__copy">
+            <div className="hero__kicker">
+              <span className="eyebrow eyebrow--light">Civic intelligence · {s?.demo_area.name ?? 'Demo City'}</span>
+              <LiveIndicator light />
+            </div>
+            <h1 className="ohero__title serif">Smarter Cities<br />Start with<br />Real Voices</h1>
+            <p className="ohero__lede">CivicPulse AI turns citizen complaints into prioritised action using explainable, documented algorithms.</p>
+            <div className="hero__ctas">
+              <Link to="/report" className="btn btn--signal">Report an issue <ArrowRight /></Link>
+              <Link to="/command" className="btn btn--ghost btn--glass">Explore city intelligence</Link>
+            </div>
           </div>
-          <h1 className="hero__title serif">Data. People.<br />Better Cities.</h1>
-          <p className="hero__lede">
-            AI-powered civic intelligence for smarter, faster and more responsive cities. CivicPulse links duplicate
-            complaints, scores what is dangerous and shows everyone what happens next.
-          </p>
-          <div className="hero__ctas">
-            <Link to="/report" className="btn btn--signal">Report an issue <ArrowRight /></Link>
-            <Link to="/command" className="btn btn--ghost btn--glass">Explore the platform</Link>
-          </div>
+          <aside className="ohero__note">
+            <MapPin aria-hidden />
+            <p>Cleaner streets<br />Safer communities<br />A better tomorrow</p>
+          </aside>
         </div>
-        <div className="hero__stats">
-          <dl className="wrap hero__statrow">
-            {m ? (
-              <>
-                <div><dd>{m.total}</dd><dt>Reports</dt></div>
-                <div><dd>{m.open}</dd><dt>Open</dt></div>
-                <div><dd className="is-signal">{m.critical_open}</dd><dt>Critical</dt></div>
-                <div><dd>{m.resolved}</dd><dt>Resolved · {Math.round(m.resolution_rate)}% rate</dt></div>
-              </>
-            ) : stats.error ? <ErrorState error={stats.error} onRetry={stats.reload} /> : [0, 1, 2, 3].map((i) => <div key={i}><Skeleton h={52} /></div>)}
-          </dl>
+      </section>
+
+      <section className="wrap ostats" aria-label="City statistics">
+        {m ? (
+          <>
+            <StatTile icon={ClipboardList} label="Total reports" value={m.total} note="All channels" />
+            <StatTile icon={Inbox} label="Open reports" value={m.open} note={`${m.unassigned_open} not yet assigned`} />
+            <StatTile icon={TriangleAlert} label="Critical" value={m.critical_open} note="Open, priority ≥ 70" tone="critical" />
+            <StatTile icon={CircleCheck} label="Resolution rate" value={`${Math.round(m.resolution_rate)}%`} note={`${m.resolved} resolved`} tone="ok" />
+          </>
+        ) : stats.error ? <ErrorState error={stats.error} onRetry={stats.reload} /> : [0, 1, 2, 3].map((i) => <Skeleton key={i} h={84} />)}
+      </section>
+
+      <section className="wrap ocommon">
+        <div className="ocommon__issues">
+          <h2 className="serif ocommon__title">Common civic issues</h2>
+          <p className="ocommon__sub">From road damage to waterlogging, report it and CivicPulse routes it to the right department.</p>
+          <ul className="issue-grid">
+            {CATEGORY_KEYS.map((k) => {
+              const Icon = CATEGORY_META[k].icon
+              const c = s?.categories.find((x) => x.key === k)
+              return (
+                <li key={k}>
+                  <Link to="/report" className="issue">
+                    <Icon aria-hidden />
+                    <span>{CATEGORY_META[k].short}</span>
+                    <em className="mono">{c ? `${c.open} open` : '—'}</em>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+          {s && (
+            <div className="ocommon__bars" aria-label="Open reports by category">
+              <div className="ocommon__barshead"><span>Open reports by category</span><span className="mono">{m?.open ?? 0} open · {m?.linked_duplicates ?? 0} duplicates linked</span></div>
+              <div className="stackbar">
+                {s.categories.filter((c) => c.open).sort((a, b) => b.open - a.open).map((c) => (
+                  <span key={c.key} style={{ flex: c.open, background: CATEGORY_COLOR[c.key] }} title={`${c.label}: ${c.open} open`} />
+                ))}
+              </div>
+              <ul className="stackbar__legend">
+                {s.categories.filter((c) => c.open).sort((a, b) => b.open - a.open).map((c) => (
+                  <li key={c.key}><i style={{ background: CATEGORY_COLOR[c.key] }} />{CATEGORY_META[c.key].short}<b className="mono">{c.open}</b></li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+        <div className="ocommon__pulse">
+          <div className="ocommon__pulsehead"><h2 className="serif ocommon__title">Live city pulse</h2><LiveIndicator /></div>
+          <ul className="pulse-feed">
+            {recent.data?.slice(0, 4).map((r) => {
+              const Icon = CATEGORY_META[r.category].icon
+              return (
+                <li key={r.id}>
+                  <Link to={`/track/${r.id}`} className="pulse-item">
+                    <span className={`sev sev--${r.priority_level}`}><Icon aria-hidden /></span>
+                    <span className="pulse-item__main">
+                      <b>{r.category_label} reported near {r.location_text}</b>
+                      <span className="mono">{timeAgo(r.created_at)} · {r.priority_level[0].toUpperCase() + r.priority_level.slice(1)} priority · {r.id}</span>
+                    </span>
+                  </Link>
+                </li>
+              )
+            }) ?? <Skeleton h={200} />}
+          </ul>
         </div>
       </section>
 

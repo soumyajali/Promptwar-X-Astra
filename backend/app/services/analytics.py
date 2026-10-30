@@ -113,6 +113,23 @@ def insights(reports: list[dict], hotspots: list[dict], m: dict, dist: dict, loa
     return out
 
 
+def week_change(reports: list[dict]) -> dict:
+    """Reports received and resolved in the last 7 days vs the 7 days before (anchored to the newest report)."""
+    if not reports:
+        return {"received": [0, 0], "resolved": [0, 0], "critical": [0, 0]}
+    end = max(datetime.fromisoformat(r["created_at"]) for r in reports)
+    w1, w0 = end - timedelta(days=7), end - timedelta(days=14)
+
+    def window(ts: str | None, lo, hi) -> bool:
+        return bool(ts) and lo < datetime.fromisoformat(ts) <= hi
+
+    rec = [sum(window(r["created_at"], w1, end) for r in reports), sum(window(r["created_at"], w0, w1) for r in reports)]
+    res = [sum(window(r.get("resolved_at"), w1, end) for r in reports), sum(window(r.get("resolved_at"), w0, w1) for r in reports)]
+    crit = [sum(window(r["created_at"], w1, end) and r["priority_level"] == "critical" for r in reports),
+            sum(window(r["created_at"], w0, w1) and r["priority_level"] == "critical" for r in reports)]
+    return {"received": rec, "resolved": res, "critical": crit}
+
+
 def dashboard(reports: list[dict]) -> dict:
     hs = detect_hotspots(reports)
     m = metrics(reports)
@@ -129,4 +146,5 @@ def dashboard(reports: list[dict]) -> dict:
         "insights": insights(reports, hs, m, dist, load),
         "critical_ids": [r["id"] for r in critical],
         "recent_ids": [r["id"] for r in reports[:8]],
+        "week": week_change(reports),
     }

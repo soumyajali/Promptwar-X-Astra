@@ -39,7 +39,7 @@ def noise(w, h, scale, octaves=4):
 
 
 def sky():
-    top, mid, low, glow = (24, 36, 36), (68, 78, 70), (176, 146, 102), (232, 196, 140)
+    top, mid, low, glow = (18, 28, 26), (92, 74, 50), (222, 146, 66), (255, 196, 112)
     y = np.linspace(0, 1, HORIZON)[:, None]
     img = np.zeros((HORIZON, W, 3))
     for c in range(3):
@@ -55,7 +55,7 @@ def sky():
     n = noise(W, HORIZON, 260)
     band = np.exp(-((yy / HORIZON - 0.42) ** 2) / 0.03)
     cl = np.clip((n - 0.52) * 3.2, 0, 1) * band
-    for c, col in enumerate((122, 118, 100)):
+    for c, col in enumerate((150, 112, 72)):
         img[:, :, c] = img[:, :, c] * (1 - cl * 0.45) + col * cl * 0.45
     return img
 
@@ -94,13 +94,13 @@ def main():
 
     # far city: hazy, light, many towers, taller cluster right of centre
     far = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    skyline(ImageDraw.Draw(far), HORIZON + 4, 0, 40, 150, (120, 120, 104, 255), 0.04, (214, 186, 128, 255),
+    skyline(ImageDraw.Draw(far), HORIZON + 4, 0, 40, 150, (112, 96, 74, 255), 0.07, (255, 200, 120, 255),
             x_bias=[(0.72, 0.004, 2.6), (0.55, 0.01, 0.8)], wmin=26, wmax=70)
     img.paste(far.filter(ImageFilter.GaussianBlur(1.6)), (0, 0), far.filter(ImageFilter.GaussianBlur(1.6)))
 
     # mid city: darker, lit windows
     mid = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    skyline(ImageDraw.Draw(mid), HORIZON + 24, 0, 60, 230, (58, 66, 58, 255), 0.10, (238, 196, 120, 255),
+    skyline(ImageDraw.Draw(mid), HORIZON + 24, 0, 60, 260, (40, 44, 38, 255), 0.22, (255, 192, 104, 255),
             x_bias=[(0.78, 0.003, 2.4), (0.92, 0.002, 1.6), (0.12, 0.004, 0.8)], wmin=36, wmax=110)
     img.paste(mid.filter(ImageFilter.GaussianBlur(0.6)), (0, 0), mid.filter(ImageFilter.GaussianBlur(0.6)))
 
@@ -108,7 +108,7 @@ def main():
     haze = np.zeros((H, W, 4), dtype=np.uint8)
     yy = np.arange(H)[:, None]
     a = np.clip(1 - np.abs(yy - HORIZON) / 120, 0, 1) * 70
-    haze[:, :, 0], haze[:, :, 1], haze[:, :, 2], haze[:, :, 3] = 196, 170, 126, a.astype(np.uint8)
+    haze[:, :, 0], haze[:, :, 1], haze[:, :, 2], haze[:, :, 3] = 230, 160, 84, a.astype(np.uint8)
     img.paste(Image.fromarray(haze, "RGBA"), (0, 0), Image.fromarray(haze, "RGBA"))
 
     def river_edges(y):
@@ -121,7 +121,7 @@ def main():
     arr = np.asarray(img).astype(float)
     ys = np.arange(HORIZON + 4, H)
     tt = ((ys - HORIZON) / (H - HORIZON))[:, None, None]
-    near, farc = np.array([20, 28, 23]), np.array([92, 92, 76])
+    near, farc = np.array([16, 22, 18]), np.array([96, 78, 54])
     ground = farc * (1 - tt ** 0.55) + near * tt ** 0.55
     canopy = noise(W, len(ys), 70, 5)[:, :, None]
     trees = np.clip((canopy - 0.5) * 4, 0, 1)
@@ -139,7 +139,7 @@ def main():
         xs = np.arange(x0, x1)
         ripple = np.sin(xs * (0.03 + 0.02 * t) + y * 0.7) * 0.5 + 0.5
         refl = arr[src_y, x0:x1] * (0.58 + 0.14 * ripple[:, None])
-        streak = np.exp(-((xs - W * 0.66 + (y - HORIZON) * 0.15) / (40 + 160 * t)) ** 2)[:, None] * (1 - t) * 60
+        streak = np.exp(-((xs - W * 0.66 + (y - HORIZON) * 0.15) / (40 + 160 * t)) ** 2)[:, None] * (1 - t) * 110
         arr[y, x0:x1] = refl * 0.88 + np.array([26, 36, 34]) * 0.12 + streak * np.array([1, .8, .5])
     img = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8))
 
@@ -169,7 +169,7 @@ def main():
                 ww = max(2, int(2 + 3 * t))
                 for wy in np.arange(y - bh + 4 * (1 + t), y - 3, 6 + 7 * t):
                     for wx in np.arange(x + 3, x + bw - ww, 5 + 8 * t):
-                        if rng.random() < 0.16:
+                        if rng.random() < 0.3:
                             d.rectangle([wx, wy, wx + ww, wy + ww * 1.3], fill=(236, 190, 116))
             x += bw + rng.uniform(2, 10 + 20 * t)
         y += step

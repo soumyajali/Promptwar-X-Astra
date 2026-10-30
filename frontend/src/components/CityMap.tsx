@@ -2,7 +2,7 @@
    If tiles fail to load (offline / blocked), markers still render on a plain background and a notice explains why. */
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Circle, MapContainer, Marker, Popup, TileLayer, Tooltip, useMap, useMapEvents } from 'react-leaflet'
 import { WifiOff } from 'lucide-react'
 import type { Hotspot, Level, Status } from '../lib/types'
@@ -35,21 +35,28 @@ function pinIcon(level: Level, closed: boolean, selected: boolean, isNew: boolea
   return icons.get(key)!
 }
 
-function FitTo({ points, fitKey, zoom = 16 }: { points: [number, number][]; fitKey?: string; zoom?: number }) {
+const beacons = new Map<string, L.DivIcon>()
+function beaconIcon(selected: boolean) {
+  const k = String(selected)
+  if (!beacons.has(k)) beacons.set(k, L.divIcon({ className: '', html: `<div class="map-beacon${selected ? ' is-on' : ''}"></div>`, iconSize: [22, 22], iconAnchor: [11, 11] }))
+  return beacons.get(k)!
+}
+
+function FitTo({ points, fitKey, zoom = 16, pad }: { points: [number, number][]; fitKey?: string; zoom?: number; pad?: [number, number, number, number] }) {
   const map = useMap()
   const done = useRef<string | undefined>(undefined)
   useEffect(() => {
     if (!points.length || done.current === fitKey) return
     done.current = fitKey
     if (points.length === 1) map.setView(points[0], zoom)
-    else map.fitBounds(L.latLngBounds(points).pad(0.12), { maxZoom: 16 })
+    else map.fitBounds(L.latLngBounds(points), pad ? { maxZoom: 16, paddingTopLeft: [pad[3], pad[0]], paddingBottomRight: [pad[1], pad[2]] } : { maxZoom: 16, padding: [30, 30] })
   }, [map, points, fitKey])
   return null
 }
 
 function FlyTo({ target }: { target?: [number, number] | null }) {
   const map = useMap()
-  useEffect(() => { if (target) map.flyTo(target, Math.max(map.getZoom(), 16), { duration: .6 }) }, [map, target])
+  useEffect(() => { if (target) map.flyTo(target, Math.max(map.getZoom(), 16), { duration: .6 }) }, [map, target?.[0], target?.[1]]) // eslint-disable-line react-hooks/exhaustive-deps
   return null
 }
 
@@ -70,7 +77,7 @@ function InvalidateOnResize() {
 
 export function CityMap({
   points = [], hotspots = [], showHotspots = true, selectedId, onSelect, height = 420, pick, pickAccuracy, onPick,
-  fitKey = 'default', newId, flyTo, scrollZoom = true, renderPopup,
+  fitKey = 'default', newId, flyTo, scrollZoom = true, renderPopup, onHotspot, selectedHotspot, noticeAt = 'bottom', fitPadding,
 }: {
   points?: MapPoint[]
   hotspots?: Hotspot[] | { id: string; lat: number; lng: number; radius_m: number; location: string; count: number }[]
@@ -87,6 +94,13 @@ export function CityMap({
   flyTo?: [number, number] | null
   scrollZoom?: boolean
   renderPopup?: (p: MapPoint) => ReactNode
+  /** Make hotspots clickable (beacon at the centre) and highlight the selected one. */
+  onHotspot?: (id: string) => void
+  selectedHotspot?: string | null
+  /** Where the "tiles couldn't load" notice sits. */
+  noticeAt?: 'bottom' | 'top-right' | 'bottom-center'
+  /** Extra padding [top, right, bottom, left] in px when fitting, to keep markers clear of overlays. */
+  fitPadding?: [number, number, number, number]
 }) {
   const [tileErrors, setTileErrors] = useState(0)
   const valid = useMemo(() => points.filter((p) => p.lat != null && p.lng != null), [points])
@@ -102,17 +116,29 @@ export function CityMap({
           eventHandlers={{ tileerror: () => setTileErrors((n) => n + 1), tileload: () => setTileErrors(0) }}
         />
         <InvalidateOnResize />
-        {!pick && bounds.length > 0 && <FitTo points={bounds} fitKey={fitKey} />}
+        {!pick && bounds.length > 0 && <FitTo points={bounds} fitKey={fitKey} pad={fitPadding} />}
         {pick && <FitTo points={[[pick.lat, pick.lng]]} fitKey={`pick-${fitKey}`}
           zoom={!pickAccuracy || pickAccuracy < 150 ? 17 : pickAccuracy < 600 ? 16 : pickAccuracy < 2500 ? 14 : 12} />}
         <FlyTo target={flyTo} />
         {onPick && <ClickPicker onPick={onPick} />}
-        {showHotspots && hotspots.map((h) => (
-          <Circle key={h.id} center={[h.lat, h.lng]} radius={Math.max(h.radius_m, 80) + 40}
-            pathOptions={{ color: '#C8441A', weight: 1.5, dashArray: '5 5', fillColor: '#C8441A', fillOpacity: .08 }}>
-            <Tooltip direction="top" permanent={false}>{h.id} · {h.location} · {h.count} reports</Tooltip>
-          </Circle>
-        ))}
+        {showHotspots && hotspots.map((h) => {
+          // Warm glow: layered translucent rings sized from the cluster's real radius.
+          const r = Math.max(h.radius_m, 80) + 40
+          const hot = 'critical_count' in h && (h as { critical_count: number }).critical_count > 0
+          const c = hot ? '#E45B32' : '#E9A33A'
+          return (
+            <Fragment key={h.id}>
+              <Circle center={[h.lat, h.lng]} radius={r * 1.9} interactive={false} pathOptions={{ stroke: false, fillColor: c, fillOpacity: .07 }} />
+              <Circle center={[h.lat, h.lng]} radius={r * 1.3} interactive={false} pathOptions={{ stroke: false, fillColor: c, fillOpacity: .1 }} />
+              <Circle center={[h.lat, h.lng]} radius={r}
+                eventHandlers={onHotspot ? { click: () => onHotspot(h.id) } : undefined}
+                pathOptions={{ color: c, weight: h.id === selectedHotspot ? 2.5 : 1.2, fillColor: c, fillOpacity: .16, dashArray: h.id === selectedHotspot ? undefined : '4 4' }}>
+                <Tooltip direction="top">{h.id} · {h.location} · {h.count} reports</Tooltip>
+              </Circle>
+              {onHotspot && <Marker position={[h.lat, h.lng]} icon={beaconIcon(h.id === selectedHotspot)} eventHandlers={{ click: () => onHotspot(h.id) }} title={`Hotspot ${h.id} ${h.location}`} keyboard zIndexOffset={-100} />}
+            </Fragment>
+          )
+        })}
         {valid.map((p) => {
           const closed = p.status === 'resolved' || p.status === 'rejected'
           return (
@@ -142,7 +168,7 @@ export function CityMap({
         {pick && <Marker position={[pick.lat, pick.lng]} icon={pinIcon('critical', false, true, true)} />}
       </MapContainer>
       {tileErrors > 3 && (
-        <div className="map-fallback notice notice--warn" role="status">
+        <div className={`map-fallback map-fallback--${noticeAt} notice notice--warn`} role="status">
           <WifiOff /> Map tiles couldn't load (offline or blocked). Report markers are still shown at their exact coordinates.
         </div>
       )}

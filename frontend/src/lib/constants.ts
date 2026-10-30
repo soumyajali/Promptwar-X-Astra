@@ -18,22 +18,30 @@ export const CATEGORY_META: Record<CategoryKey, { label: string; short: string; 
 export const CATEGORY_KEYS = Object.keys(CATEGORY_META) as CategoryKey[]
 
 export const LEVEL_COLOR: Record<Level, string> = {
-  critical: '#E57B56',
-  high: '#D8AA52',
-  medium: '#86AACB',
-  low: '#94BC9C',
+  critical: '#D94B3D',
+  high: '#E45B32',
+  medium: '#E9A33A',
+  low: '#80B69A',
 }
 
 export const CHART = {
-  ink: '#ECE8DC',
-  muted: '#8E9C94',
-  rule: '#2C3D35',
-  civic: '#93C3A5',
-  signal: '#E57B56',
-  ochre: '#D8AA52',
-  slate: '#86AACB',
-  sage: '#94BC9C',
-  paper: '#0E1814',
+  ink: '#F0EBDD',
+  muted: '#71857A',
+  rule: '#1E3A2F',
+  civic: '#80B69A',
+  signal: '#D94B3D',
+  ochre: '#E9A33A',
+  slate: '#E9A33A',
+  sage: '#80B69A',
+  paper: '#06130F',
+  amber: '#E9A33A',
+  orange: '#E45B32',
+}
+
+// Category palette for distribution charts: warm-to-cool sequence that reads on dark green.
+export const CATEGORY_COLOR: Record<CategoryKey, string> = {
+  roads: '#E45B32', waterlogging: '#E9A33A', garbage: '#C9B27C', streetlights: '#F2D27A',
+  drainage: '#80B69A', public_safety: '#D94B3D', water_supply: '#6FA8A0', other: '#71857A',
 }
 
 export const DEMO_EXAMPLE = {

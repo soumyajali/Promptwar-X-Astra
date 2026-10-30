@@ -130,6 +130,7 @@ export interface TrackView extends PublicReport {
   department: DeptKey | null
   department_label: string | null
   officer_assigned: boolean
+  officer: string | null
   resolution_note: string | null
   resolved_at: string | null
   timeline: TimelineEntry[]
@@ -256,6 +257,7 @@ export interface Dashboard {
   insights: { kind: string; title: string; detail: string; evidence: string[] }[]
   critical_ids: string[]
   recent_ids: string[]
+  week: { received: [number, number]; resolved: [number, number]; critical: [number, number] }
 }
 
 export interface PublicStats {

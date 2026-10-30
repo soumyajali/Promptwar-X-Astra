@@ -3,6 +3,7 @@ import {
   RotateCcw, Users, X,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { ShieldCheck } from 'lucide-react'
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Assistant } from '../components/Assistant'
 import { LiveIndicator, Logo, Toast, useToast } from '../components/ui'
@@ -19,6 +20,13 @@ const NAV = [
   { to: '/command/analytics', label: 'Analytics', icon: BarChart3 },
   { to: '/command/briefs', label: 'Action briefs', icon: FileText },
 ]
+
+/** Local date and time in the operations header, updated every 30 s. */
+function Clock() {
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => { const t = setInterval(() => setNow(new Date()), 30000); return () => clearInterval(t) }, [])
+  return <span className="cmd__clock mono">{now.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} · {now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
+}
 
 export function CommandLayout() {
   const nav = useNavigate()
@@ -42,8 +50,9 @@ export function CommandLayout() {
 
   if (!authed) return <Navigate to="/command/login" replace state={{ from: loc.pathname }} />
 
+  const [confirmReset, setConfirmReset] = useState(false)
   const reset = async () => {
-    if (!confirm('Reset all data to the 46 synthetic demo reports? Reports submitted during the demo will be removed.')) return
+    setConfirmReset(false)
     try {
       const r = await api.resetDemo()
       toast.show(`Demo data reset · ${r.reports} reports`)
@@ -64,9 +73,18 @@ export function CommandLayout() {
             <NavLink key={to} to={to} end={end}><Icon aria-hidden />{label}</NavLink>
           ))}
         </nav>
+        <div className="cmd__card" aria-hidden>
+          <img src="/img/hero-city-sm.jpg" alt="" />
+          <p>A smarter city through collective action.</p>
+        </div>
         <div className="cmd__foot">
           <button className="cmd__ask" onClick={() => setAssistant(true)}><MessageSquareText />Ask CivicPulse</button>
-          <button className="cmd__link" onClick={reset}><RotateCcw />Reset demo data</button>
+          {confirmReset ? (
+            <div className="cmd__confirm" role="alertdialog" aria-label="Confirm reset">
+              <p>Reset to the 46 demo reports? Reports added during the demo are removed.</p>
+              <div><button className="btn btn--signal btn--sm" onClick={reset}>Reset</button><button className="btn btn--quiet btn--sm" onClick={() => setConfirmReset(false)}>Cancel</button></div>
+            </div>
+          ) : <button className="cmd__link" onClick={() => setConfirmReset(true)}><RotateCcw />Reset demo data</button>}
           <button className="cmd__link" onClick={() => { auth.clear(); setAuthed(false) }}><LogOut />Sign out</button>
         </div>
       </aside>
@@ -77,6 +95,8 @@ export function CommandLayout() {
           <Link to="/" className="cmd__toplogo"><Logo compact /></Link>
           <span className="cmd__topnote mono">Demo access · synthetic data</span>
           <div className="cmd__topact">
+            <Clock />
+            <span className="cmd__admin"><ShieldCheck size={15} />Ward officer</span>
             <Link to="/report" className="btn btn--ghost btn--sm" target="_blank">Citizen view</Link>
             <button className="btn btn--civic btn--sm" onClick={() => setAssistant(true)}><MessageSquareText />Ask</button>
           </div>

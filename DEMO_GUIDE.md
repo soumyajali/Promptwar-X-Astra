@@ -26,8 +26,9 @@ Stand, Platform Road** already exists with drainage and waterlogging reports. Yo
    - Location: **Central Bus Stand, Platform Road**, pin at `12.87010, 74.84255`
 3. Point at the green hint under the description: *"Reads as Waterlogging and flooding (90%)"* — the classifier is
    working while they type.
-4. Under **Add a photo**, choose `sample-waterlogging.jpg`. Show the preview.
-5. Click **Submit report**.
+4. Click **Next: Location & map** — the pin is already on the bus stand. Click **Next: Add evidence** and choose
+   `sample-waterlogging.jpg`. Show the preview.
+5. Click **Next: Review & submit**, glance at the summary of all four steps, then click **Submit report**.
 
 ## Minute 2 — UNDERSTAND: the analysis (Window A, result page)
 

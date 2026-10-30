@@ -23,14 +23,15 @@ export function PublicLayout() {
         <div className="wrap masthead__row">
           <Link to="/" className="masthead__brand" aria-label="CivicPulse AI home"><Logo /></Link>
           <nav className={`masthead__nav ${open ? 'is-open' : ''}`} aria-label="Main">
-            <NavLink to="/" end>Overview</NavLink>
+            <NavLink to="/" end>Home</NavLink>
             <a href="/#how">How it works</a>
             <a href="/#pulse">City pulse</a>
-            <NavLink to="/track">Track a report</NavLink>
+            <NavLink to="/track" className="masthead__navtrack">Track a report</NavLink>
             <NavLink to="/command" className="masthead__cmd">Command Center <ArrowUpRight size={15} /></NavLink>
             <Link to="/report" className="btn btn--signal btn--sm masthead__cta-mobile">Report an issue</Link>
           </nav>
           <div className="masthead__actions">
+            <Link to="/track" className="masthead__track">Track a report</Link>
             <Link to="/report" className="btn btn--civic btn--sm">Report an issue</Link>
             <button className="btn btn--quiet masthead__toggle" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen(!open)}>
               {open ? <X /> : <Menu />}
