@@ -1,0 +1,1249 @@
+{
+ "metrics": {
+  "total": 46,
+  "open": 32,
+  "critical_open": 4,
+  "high_open": 10,
+  "resolved": 13,
+  "rejected": 1,
+  "unassigned_open": 20,
+  "resolution_rate": 28.9,
+  "avg_resolution_hours": 53.5,
+  "avg_resolution_note": null,
+  "linked_duplicates": 11
+ },
+ "trend": [
+  {
+   "label": "10 Oct",
+   "received": 1,
+   "resolved": 0
+  },
+  {
+   "label": "11 Oct",
+   "received": 1,
+   "resolved": 0
+  },
+  {
+   "label": "12 Oct",
+   "received": 1,
+   "resolved": 1
+  },
+  {
+   "label": "13 Oct",
+   "received": 1,
+   "resolved": 0
+  },
+  {
+   "label": "14 Oct",
+   "received": 1,
+   "resolved": 3
+  },
+  {
+   "label": "15 Oct",
+   "received": 1,
+   "resolved": 1
+  },
+  {
+   "label": "16 Oct",
+   "received": 1,
+   "resolved": 0
+  },
+  {
+   "label": "17 Oct",
+   "received": 1,
+   "resolved": 0
+  },
+  {
+   "label": "18 Oct",
+   "received": 2,
+   "resolved": 1
+  },
+  {
+   "label": "19 Oct",
+   "received": 2,
+   "resolved": 3
+  },
+  {
+   "label": "20 Oct",
+   "received": 2,
+   "resolved": 1
+  },
+  {
+   "label": "21 Oct",
+   "received": 2,
+   "resolved": 0
+  },
+  {
+   "label": "22 Oct",
+   "received": 2,
+   "resolved": 1
+  },
+  {
+   "label": "23 Oct",
+   "received": 2,
+   "resolved": 2
+  },
+  {
+   "label": "24 Oct",
+   "received": 4,
+   "resolved": 0
+  },
+  {
+   "label": "25 Oct",
+   "received": 3,
+   "resolved": 0
+  },
+  {
+   "label": "26 Oct",
+   "received": 4,
+   "resolved": 0
+  },
+  {
+   "label": "27 Oct",
+   "received": 4,
+   "resolved": 0
+  },
+  {
+   "label": "28 Oct",
+   "received": 5,
+   "resolved": 0
+  },
+  {
+   "label": "29 Oct",
+   "received": 5,
+   "resolved": 0
+  },
+  {
+   "label": "30 Oct",
+   "received": 1,
+   "resolved": 0
+  }
+ ],
+ "categories": [
+  {
+   "key": "roads",
+   "label": "Roads and potholes",
+   "total": 9,
+   "open": 6
+  },
+  {
+   "key": "waterlogging",
+   "label": "Waterlogging and flooding",
+   "total": 4,
+   "open": 2
+  },
+  {
+   "key": "garbage",
+   "label": "Garbage and sanitation",
+   "total": 8,
+   "open": 6
+  },
+  {
+   "key": "streetlights",
+   "label": "Streetlights",
+   "total": 7,
+   "open": 5
+  },
+  {
+   "key": "drainage",
+   "label": "Drainage",
+   "total": 6,
+   "open": 5
+  },
+  {
+   "key": "public_safety",
+   "label": "Public safety",
+   "total": 4,
+   "open": 3
+  },
+  {
+   "key": "water_supply",
+   "label": "Water supply",
+   "total": 6,
+   "open": 4
+  },
+  {
+   "key": "other",
+   "label": "Other",
+   "total": 2,
+   "open": 1
+  }
+ ],
+ "priority": [
+  {
+   "key": "critical",
+   "label": "Critical",
+   "count": 4
+  },
+  {
+   "key": "high",
+   "label": "High",
+   "count": 10
+  },
+  {
+   "key": "medium",
+   "label": "Medium",
+   "count": 12
+  },
+  {
+   "key": "low",
+   "label": "Low",
+   "count": 6
+  }
+ ],
+ "workload": [
+  {
+   "label": "Water and Drainage",
+   "open": 4,
+   "critical": 0,
+   "in_progress": 1
+  },
+  {
+   "label": "Electricity",
+   "open": 2,
+   "critical": 0,
+   "in_progress": 1
+  },
+  {
+   "label": "Public Safety",
+   "open": 2,
+   "critical": 0,
+   "in_progress": 1
+  },
+  {
+   "label": "Roads and Infrastructure",
+   "open": 2,
+   "critical": 1,
+   "in_progress": 1
+  },
+  {
+   "label": "Sanitation",
+   "open": 2,
+   "critical": 0,
+   "in_progress": 1
+  },
+  {
+   "label": "General Administration",
+   "open": 0,
+   "critical": 0,
+   "in_progress": 0
+  }
+ ],
+ "hotspots": [
+  {
+   "id": "H1",
+   "lat": 12.870396,
+   "lng": 74.842658,
+   "radius_m": 105,
+   "location": "Central Bus Stand, Platform Road",
+   "ward": "Station Ward",
+   "count": 5,
+   "dominant_label": "Drainage",
+   "critical_count": 2,
+   "avg_priority": 67.2,
+   "score": 73,
+   "reason": "5 open reports within 350 m of each other; 3 are drainage; 2 rated Critical.",
+   "intervention": "Desilt the drain network along this stretch and repair broken covers",
+   "department": "Water and Drainage",
+   "kind": "recurring"
+  },
+  {
+   "id": "H2",
+   "lat": 12.883496,
+   "lng": 74.848374,
+   "radius_m": 160,
+   "location": "Lake Circle bus stop",
+   "ward": "Lakeview Ward",
+   "count": 5,
+   "dominant_label": "Roads and potholes",
+   "critical_count": 1,
+   "avg_priority": 55.4,
+   "score": 59,
+   "reason": "5 open reports within 350 m of each other; 4 are roads and potholes; 1 rated Critical.",
+   "intervention": "Schedule a full resurfacing of this stretch rather than spot patching",
+   "department": "Roads and Infrastructure",
+   "kind": "recurring"
+  },
+  {
+   "id": "H3",
+   "lat": 12.858162,
+   "lng": 74.851988,
+   "radius_m": 60,
+   "location": "Hillcrest Colony main gate",
+   "ward": "Hillcrest Ward",
+   "count": 4,
+   "dominant_label": "Streetlights",
+   "critical_count": 1,
+   "avg_priority": 60.2,
+   "score": 54,
+   "reason": "4 open reports within 350 m of each other; 3 are streetlights; 1 rated Critical.",
+   "intervention": "Audit the lighting circuit for this block and replace failing fixtures together",
+   "department": "Electricity",
+   "kind": "recurring"
+  },
+  {
+   "id": "H4",
+   "lat": 12.866505,
+   "lng": 74.83843,
+   "radius_m": 259,
+   "location": "Fish Market, Market Road",
+   "ward": "Market Ward",
+   "count": 6,
+   "dominant_label": "Garbage and sanitation",
+   "critical_count": 0,
+   "avg_priority": 46.5,
+   "score": 53,
+   "reason": "6 open reports within 350 m of each other; 5 are garbage and sanitation.",
+   "intervention": "Add bin capacity and an extra daily collection round",
+   "department": "Sanitation",
+   "kind": "recurring"
+  },
+  {
+   "id": "H5",
+   "lat": 12.877044,
+   "lng": 74.831492,
+   "radius_m": 308,
+   "location": "Riverside Lane 4",
+   "ward": "Riverside Ward",
+   "count": 5,
+   "dominant_label": "Water supply",
+   "critical_count": 0,
+   "avg_priority": 44.6,
+   "score": 45,
+   "reason": "5 open reports within 350 m of each other; 3 are water supply; 3 different infrastructure issues in one place.",
+   "intervention": "Inspect the distribution main serving this area for leaks and pressure loss",
+   "department": "Water and Drainage",
+   "kind": "recurring"
+  }
+ ],
+ "reports": [
+  {
+   "id": "CP-NDHLHH",
+   "category": "streetlights",
+   "label": "Streetlights",
+   "headline": "Light pole at Lake Circle bus stop damaged after a vehicle hit it, wires exposed",
+   "location": "Lake Circle bus stop",
+   "ward": "Lakeview Ward",
+   "lat": 12.88262,
+   "lng": 74.8472,
+   "status": "submitted",
+   "level": "medium",
+   "score": 42,
+   "dept": null,
+   "officer": null,
+   "ago": "just now",
+   "dup": "possible"
+  },
+  {
+   "id": "CP-HV4WBX",
+   "category": "streetlights",
+   "label": "Streetlights",
+   "headline": "Street lamp at the colony main gate flickering and then off",
+   "location": "Hillcrest Colony main gate",
+   "ward": "Hillcrest Ward",
+   "lat": 12.8585,
+   "lng": 74.8516,
+   "status": "submitted",
+   "level": "medium",
+   "score": 48,
+   "dept": null,
+   "officer": null,
+   "ago": "8 h ago",
+   "dup": "possible"
+  },
+  {
+   "id": "CP-D5BUXU",
+   "category": "other",
+   "label": "Other",
+   "headline": "Illegal hoarding board leaning over the footpath on Harbour Road",
+   "location": "Harbour Road warehouse stretch",
+   "ward": "Harbour Ward",
+   "lat": 12.8614,
+   "lng": 74.8359,
+   "status": "submitted",
+   "level": "low",
+   "score": 12,
+   "dept": null,
+   "officer": null,
+   "ago": "13 h ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-HZS2UY",
+   "category": "drainage",
+   "label": "Drainage",
+   "headline": "Sewage overflowing from the drain on Station Approach Road, foul smell near the shops",
+   "location": "Station Approach Road",
+   "ward": "Station Ward",
+   "lat": 12.8711,
+   "lng": 74.8433,
+   "status": "submitted",
+   "level": "medium",
+   "score": 44,
+   "dept": null,
+   "officer": null,
+   "ago": "18 h ago",
+   "dup": "possible"
+  },
+  {
+   "id": "CP-C3WP75",
+   "category": "garbage",
+   "label": "Garbage and sanitation",
+   "headline": "Overflowing bins at fish market again today, waste spilling on the road",
+   "location": "Fish Market, Market Road",
+   "ward": "Market Ward",
+   "lat": 12.8669,
+   "lng": 74.83832,
+   "status": "submitted",
+   "level": "high",
+   "score": 58,
+   "dept": null,
+   "officer": null,
+   "ago": "20 h ago",
+   "dup": "likely"
+  },
+  {
+   "id": "CP-VHGYW7",
+   "category": "drainage",
+   "label": "Drainage",
+   "headline": "Drain choked in Riverside Lane 1, water entering the ground floor houses during rain",
+   "location": "Riverside Lane 1",
+   "ward": "Riverside Ward",
+   "lat": 12.87725,
+   "lng": 74.8303,
+   "status": "submitted",
+   "level": "medium",
+   "score": 32,
+   "dept": null,
+   "officer": null,
+   "ago": "21 h ago",
+   "dup": "possible"
+  },
+  {
+   "id": "CP-4ADGRB",
+   "category": "streetlights",
+   "label": "Streetlights",
+   "headline": "Electric pole near 2nd Cross has a live wire hanging low and sparking",
+   "location": "Hillcrest Colony 2nd Cross",
+   "ward": "Hillcrest Ward",
+   "lat": 12.8581,
+   "lng": 74.85215,
+   "status": "submitted",
+   "level": "critical",
+   "score": 87,
+   "dept": null,
+   "officer": null,
+   "ago": "1 d ago",
+   "dup": "likely"
+  },
+  {
+   "id": "CP-SSEA4S",
+   "category": "drainage",
+   "label": "Drainage",
+   "headline": "Open manhole near the bus stand is hidden under flood water",
+   "location": "Central Bus Stand, Platform Road",
+   "ward": "Station Ward",
+   "lat": 12.86995,
+   "lng": 74.8425,
+   "status": "submitted",
+   "level": "critical",
+   "score": 81,
+   "dept": null,
+   "officer": null,
+   "ago": "1 d ago",
+   "dup": "likely"
+  },
+  {
+   "id": "CP-WTEUWL",
+   "category": "roads",
+   "label": "Roads and potholes",
+   "headline": "Potholes on Lakeview main road getting worse, multiple complaints but no action",
+   "location": "Lakeview Main Road",
+   "ward": "Lakeview Ward",
+   "lat": 12.88385,
+   "lng": 74.8486,
+   "status": "submitted",
+   "level": "high",
+   "score": 63,
+   "dept": null,
+   "officer": null,
+   "ago": "1 d ago",
+   "dup": "likely"
+  },
+  {
+   "id": "CP-LGDYMG",
+   "category": "public_safety",
+   "label": "Public safety",
+   "headline": "Stray dog bite incident near Railway Colony Road, packs of dogs chasing two wheelers",
+   "location": "Railway Colony Road",
+   "ward": "Station Ward",
+   "lat": 12.8744,
+   "lng": 74.847,
+   "status": "under_review",
+   "level": "medium",
+   "score": 36,
+   "dept": null,
+   "officer": null,
+   "ago": "1 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-TJGSG5",
+   "category": "water_supply",
+   "label": "Water supply",
+   "headline": "Muddy and dirty water coming from taps in Riverside Lane 4 after the pipeline repair",
+   "location": "Riverside Lane 4",
+   "ward": "Riverside Ward",
+   "lat": 12.87585,
+   "lng": 74.83225,
+   "status": "submitted",
+   "level": "high",
+   "score": 60,
+   "dept": null,
+   "officer": null,
+   "ago": "1 d ago",
+   "dup": "likely"
+  },
+  {
+   "id": "CP-YPHTPU",
+   "category": "public_safety",
+   "label": "Public safety",
+   "headline": "Chain snatching incident near the colony park last night, the area is dark and unsafe",
+   "location": "Hillcrest Colony park",
+   "ward": "Hillcrest Ward",
+   "lat": 12.85775,
+   "lng": 74.8518,
+   "status": "in_progress",
+   "level": "medium",
+   "score": 48,
+   "dept": "Public Safety",
+   "officer": "Officer Divya Hegde",
+   "ago": "2 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-X4MBYL",
+   "category": "garbage",
+   "label": "Garbage and sanitation",
+   "headline": "Plastic waste thrown into the lake edge behind Lakeview Apartments",
+   "location": "Lakeview Apartments",
+   "ward": "Lakeview Ward",
+   "lat": 12.88705,
+   "lng": 74.8515,
+   "status": "submitted",
+   "level": "low",
+   "score": 11,
+   "dept": null,
+   "officer": null,
+   "ago": "2 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-GPQAF7",
+   "category": "garbage",
+   "label": "Garbage and sanitation",
+   "headline": "Rotting vegetable waste piled in the back lane, mosquito breeding and stink",
+   "location": "Vegetable market back lane",
+   "ward": "Market Ward",
+   "lat": 12.8672,
+   "lng": 74.8377,
+   "status": "submitted",
+   "level": "medium",
+   "score": 44,
+   "dept": null,
+   "officer": null,
+   "ago": "2 d ago",
+   "dup": "possible"
+  },
+  {
+   "id": "CP-MW86HT",
+   "category": "waterlogging",
+   "label": "Waterlogging and flooding",
+   "headline": "Water logging on Platform Road opposite the bus stand since 3 days",
+   "location": "Platform Road, opposite bus stand",
+   "ward": "Station Ward",
+   "lat": 12.8706,
+   "lng": 74.84218,
+   "status": "submitted",
+   "level": "high",
+   "score": 60,
+   "dept": null,
+   "officer": null,
+   "ago": "2 d ago",
+   "dup": "possible"
+  },
+  {
+   "id": "CP-S794U7",
+   "category": "waterlogging",
+   "label": "Waterlogging and flooding",
+   "headline": "Knee deep waterlogging at the bus stand junction again",
+   "location": "Bus stand junction near ticket counter",
+   "ward": "Station Ward",
+   "lat": 12.87002,
+   "lng": 74.84291,
+   "status": "under_review",
+   "level": "critical",
+   "score": 88,
+   "dept": null,
+   "officer": null,
+   "ago": "3 d ago",
+   "dup": "possible"
+  },
+  {
+   "id": "CP-F2VMYM",
+   "category": "roads",
+   "label": "Roads and potholes",
+   "headline": "Road resurfacing left gravel spread on Riverside School Road, children slipping on bicycles",
+   "location": "Riverside School Road",
+   "ward": "Riverside Ward",
+   "lat": 12.8798,
+   "lng": 74.8312,
+   "status": "submitted",
+   "level": "medium",
+   "score": 30,
+   "dept": null,
+   "officer": null,
+   "ago": "3 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-LM2T54",
+   "category": "roads",
+   "label": "Roads and potholes",
+   "headline": "Broken road and potholes in front of the school gate",
+   "location": "Lakeview Main Road, school gate",
+   "ward": "Lakeview Ward",
+   "lat": 12.88401,
+   "lng": 74.84905,
+   "status": "submitted",
+   "level": "high",
+   "score": 54,
+   "dept": null,
+   "officer": null,
+   "ago": "3 d ago",
+   "dup": "likely"
+  },
+  {
+   "id": "CP-N8BJPJ",
+   "category": "water_supply",
+   "label": "Water supply",
+   "headline": "Pipe burst on Riverside Lane 5, drinking water is being wasted on the road and supply to houses is low pressure",
+   "location": "Riverside Lane 5",
+   "ward": "Riverside Ward",
+   "lat": 12.8763,
+   "lng": 74.8317,
+   "status": "assigned",
+   "level": "medium",
+   "score": 49,
+   "dept": "Water and Drainage",
+   "officer": "Er. Kavya Bhat",
+   "ago": "3 d ago",
+   "dup": "likely"
+  },
+  {
+   "id": "CP-CNMCD6",
+   "category": "streetlights",
+   "label": "Streetlights",
+   "headline": "Women returning from work feel unsafe walking in the darkness",
+   "location": "Hillcrest Colony 3rd Cross",
+   "ward": "Hillcrest Ward",
+   "lat": 12.8583,
+   "lng": 74.8524,
+   "status": "assigned",
+   "level": "high",
+   "score": 58,
+   "dept": "Electricity",
+   "officer": "Er. Lata Kamath",
+   "ago": "4 d ago",
+   "dup": "likely"
+  },
+  {
+   "id": "CP-5X7QE3",
+   "category": "garbage",
+   "label": "Garbage and sanitation",
+   "headline": "People are dumping and burning garbage behind the bus shelter on Market Road",
+   "location": "Market Road bus shelter",
+   "ward": "Market Ward",
+   "lat": 12.8665,
+   "lng": 74.83855,
+   "status": "submitted",
+   "level": "medium",
+   "score": 43,
+   "dept": null,
+   "officer": null,
+   "ago": "4 d ago",
+   "dup": "likely"
+  },
+  {
+   "id": "CP-H97LKP",
+   "category": "public_safety",
+   "label": "Public safety",
+   "headline": "Unsafe for pedestrians",
+   "location": "Old Port Road",
+   "ward": "Harbour Ward",
+   "lat": 12.8599,
+   "lng": 74.8329,
+   "status": "assigned",
+   "level": "medium",
+   "score": 48,
+   "dept": "Public Safety",
+   "officer": "Officer Imran Sheikh",
+   "ago": "4 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-B8WV6W",
+   "category": "roads",
+   "label": "Roads and potholes",
+   "headline": "Road damage at Lake Circle junction, big crater in the middle of the road",
+   "location": "Lake Circle junction",
+   "ward": "Lakeview Ward",
+   "lat": 12.8833,
+   "lng": 74.84822,
+   "status": "assigned",
+   "level": "medium",
+   "score": 47,
+   "dept": "Roads and Infrastructure",
+   "officer": "Er. Anil Rao",
+   "ago": "5 d ago",
+   "dup": "possible"
+  },
+  {
+   "id": "CP-2EDYYB",
+   "category": "roads",
+   "label": "Roads and potholes",
+   "headline": "Potholes on Car Street near the temple, vehicles and worshippers affected",
+   "location": "Car Street",
+   "ward": "Market Ward",
+   "lat": 12.8646,
+   "lng": 74.8398,
+   "status": "under_review",
+   "level": "low",
+   "score": 29,
+   "dept": null,
+   "officer": null,
+   "ago": "5 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-2KN2AG",
+   "category": "drainage",
+   "label": "Drainage",
+   "headline": "Drain beside the bus stand is completely blocked with silt and plastic",
+   "location": "Central Bus Stand, Platform Road",
+   "ward": "Station Ward",
+   "lat": 12.87031,
+   "lng": 74.8424,
+   "status": "assigned",
+   "level": "high",
+   "score": 63,
+   "dept": "Water and Drainage",
+   "officer": "Er. Suresh Naik",
+   "ago": "5 d ago",
+   "dup": "possible"
+  },
+  {
+   "id": "CP-F4LJV4",
+   "category": "water_supply",
+   "label": "Water supply",
+   "headline": "No water supply in Riverside Lane 4 for 3 days",
+   "location": "Riverside Lane 4",
+   "ward": "Riverside Ward",
+   "lat": 12.87602,
+   "lng": 74.83201,
+   "status": "in_progress",
+   "level": "high",
+   "score": 52,
+   "dept": "Water and Drainage",
+   "officer": "Er. Kavya Bhat",
+   "ago": "5 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-9JQ8JU",
+   "category": "water_supply",
+   "label": "Water supply",
+   "headline": "Water tank overflowing at Hilltop Road every morning, water wasted",
+   "location": "Hilltop Road water tank",
+   "ward": "Hillcrest Ward",
+   "lat": 12.8541,
+   "lng": 74.857,
+   "status": "under_review",
+   "level": "low",
+   "score": 20,
+   "dept": null,
+   "officer": null,
+   "ago": "6 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-CTYKAW",
+   "category": "garbage",
+   "label": "Garbage and sanitation",
+   "headline": "Garbage not collected for days near the fish market, foul smell for the whole market area",
+   "location": "Fish Market, Market Road",
+   "ward": "Market Ward",
+   "lat": 12.86702,
+   "lng": 74.83801,
+   "status": "assigned",
+   "level": "high",
+   "score": 51,
+   "dept": "Sanitation",
+   "officer": "Insp. Rohit Pai",
+   "ago": "6 d ago",
+   "dup": "likely"
+  },
+  {
+   "id": "CP-A6FNRH",
+   "category": "streetlights",
+   "label": "Streetlights",
+   "headline": "Streetlight bulb fused on Railway Colony 1st Cross",
+   "location": "Railway Colony 1st Cross",
+   "ward": "Station Ward",
+   "lat": 12.8751,
+   "lng": 74.8488,
+   "status": "in_progress",
+   "level": "low",
+   "score": 20,
+   "dept": "Electricity",
+   "officer": "Er. Lata Kamath",
+   "ago": "7 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-N4K6AF",
+   "category": "roads",
+   "label": "Roads and potholes",
+   "headline": "Deep pothole on Lakeview Main Road has reopened after rain",
+   "location": "Lakeview Main Road, near Lake Circle",
+   "ward": "Lakeview Ward",
+   "lat": 12.8837,
+   "lng": 74.8488,
+   "status": "in_progress",
+   "level": "critical",
+   "score": 71,
+   "dept": "Roads and Infrastructure",
+   "officer": "Er. Anil Rao",
+   "ago": "7 d ago",
+   "dup": "likely"
+  },
+  {
+   "id": "CP-8ET9ZG",
+   "category": "drainage",
+   "label": "Drainage",
+   "headline": "Culvert on Harbour Road choked with silt, water backing up during high tide",
+   "location": "Harbour Road",
+   "ward": "Harbour Ward",
+   "lat": 12.862,
+   "lng": 74.837,
+   "status": "assigned",
+   "level": "low",
+   "score": 16,
+   "dept": "Water and Drainage",
+   "officer": "Er. Suresh Naik",
+   "ago": "8 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-G6S6M5",
+   "category": "garbage",
+   "label": "Garbage and sanitation",
+   "headline": "Garbage bins at the fish market are overflowing and waste is spreading onto Market Road",
+   "location": "Fish Market, Market Road",
+   "ward": "Market Ward",
+   "lat": 12.86681,
+   "lng": 74.8382,
+   "status": "in_progress",
+   "level": "high",
+   "score": 54,
+   "dept": "Sanitation",
+   "officer": "Insp. Farah Khan",
+   "ago": "8 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-95CUW7",
+   "category": "streetlights",
+   "label": "Streetlights",
+   "headline": "Streetlights on Hillcrest Colony 2nd Cross not working for a week",
+   "location": "Hillcrest Colony 2nd Cross",
+   "ward": "Hillcrest Ward",
+   "lat": 12.85802,
+   "lng": 74.85201,
+   "status": "resolved",
+   "level": "high",
+   "score": 63,
+   "dept": "Electricity",
+   "officer": "Er. Joseph D'Souza",
+   "ago": "9 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-9ZNS97",
+   "category": "water_supply",
+   "label": "Water supply",
+   "headline": "Water meter leaking outside Lakeview Apartments",
+   "location": "Lakeview Apartments",
+   "ward": "Lakeview Ward",
+   "lat": 12.8872,
+   "lng": 74.8512,
+   "status": "resolved",
+   "level": "low",
+   "score": 14,
+   "dept": "Water and Drainage",
+   "officer": "Er. Kavya Bhat",
+   "ago": "9 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-UTACK7",
+   "category": "garbage",
+   "label": "Garbage and sanitation",
+   "headline": "Garbage collection van has not come to Riverside Lane 1 this week",
+   "location": "Riverside Lane 1",
+   "ward": "Riverside Ward",
+   "lat": 12.8771,
+   "lng": 74.8301,
+   "status": "resolved",
+   "level": "low",
+   "score": 22,
+   "dept": "Sanitation",
+   "officer": "Insp. Rohit Pai",
+   "ago": "10 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-3V835N",
+   "category": "other",
+   "label": "Other",
+   "headline": "Abandoned vehicle lying in the market parking for months",
+   "location": "Central Market parking",
+   "ward": "Market Ward",
+   "lat": 12.8659,
+   "lng": 74.8406,
+   "status": "rejected",
+   "level": "low",
+   "score": 24,
+   "dept": null,
+   "officer": null,
+   "ago": "10 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-8QH78S",
+   "category": "roads",
+   "label": "Roads and potholes",
+   "headline": "Footpath tiles uneven on Hilltop Road, elderly residents tripping",
+   "location": "Hilltop Road",
+   "ward": "Hillcrest Ward",
+   "lat": 12.8532,
+   "lng": 74.8561,
+   "status": "resolved",
+   "level": "low",
+   "score": 23,
+   "dept": "Roads and Infrastructure",
+   "officer": "Er. Meera Shetty",
+   "ago": "11 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-JDG58K",
+   "category": "waterlogging",
+   "label": "Waterlogging and flooding",
+   "headline": "Heavy rain water accumulated near the Central Bus Stand entrance",
+   "location": "Central Bus Stand, Platform Road",
+   "ward": "Station Ward",
+   "lat": 12.87018,
+   "lng": 74.84262,
+   "status": "resolved",
+   "level": "high",
+   "score": 58,
+   "dept": "Water and Drainage",
+   "officer": "Er. Suresh Naik",
+   "ago": "11 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-3S48BQ",
+   "category": "waterlogging",
+   "label": "Waterlogging and flooding",
+   "headline": "Stagnant water and mosquito breeding near Fishermen Colony after rain, dengue cases reported",
+   "location": "Fishermen Colony",
+   "ward": "Harbour Ward",
+   "lat": 12.8588,
+   "lng": 74.8342,
+   "status": "resolved",
+   "level": "medium",
+   "score": 39,
+   "dept": "Water and Drainage",
+   "officer": "Er. Suresh Naik",
+   "ago": "12 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-F39H59",
+   "category": "roads",
+   "label": "Roads and potholes",
+   "headline": "Large potholes on Lakeview Main Road near Lake Circle",
+   "location": "Lakeview Main Road, near Lake Circle",
+   "ward": "Lakeview Ward",
+   "lat": 12.88352,
+   "lng": 74.84851,
+   "status": "resolved",
+   "level": "high",
+   "score": 51,
+   "dept": "Roads and Infrastructure",
+   "officer": "Er. Anil Rao",
+   "ago": "13 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-VBZZ75",
+   "category": "water_supply",
+   "label": "Water supply",
+   "headline": "Low pressure water supply in Railway Colony for a week",
+   "location": "Railway Colony Road",
+   "ward": "Station Ward",
+   "lat": 12.8742,
+   "lng": 74.8472,
+   "status": "resolved",
+   "level": "medium",
+   "score": 36,
+   "dept": "Water and Drainage",
+   "officer": "Er. Kavya Bhat",
+   "ago": "14 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-XFUU7K",
+   "category": "public_safety",
+   "label": "Public safety",
+   "headline": "Fallen tree branch blocking half the road near Lake Circle bus stop after the storm",
+   "location": "Lake Circle bus stop",
+   "ward": "Lakeview Ward",
+   "lat": 12.8825,
+   "lng": 74.847,
+   "status": "resolved",
+   "level": "high",
+   "score": 54,
+   "dept": "Public Safety",
+   "officer": "Officer Divya Hegde",
+   "ago": "15 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-3SYY2E",
+   "category": "drainage",
+   "label": "Drainage",
+   "headline": "Drain cover broken on Car Street, gutter water on the footpath",
+   "location": "Car Street",
+   "ward": "Market Ward",
+   "lat": 12.8648,
+   "lng": 74.8395,
+   "status": "resolved",
+   "level": "low",
+   "score": 26,
+   "dept": "Water and Drainage",
+   "officer": "Er. Suresh Naik",
+   "ago": "16 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-G6A9WP",
+   "category": "streetlights",
+   "label": "Streetlights",
+   "headline": "Two streetlights at Riverside Park entrance not working",
+   "location": "Riverside Park entrance",
+   "ward": "Riverside Ward",
+   "lat": 12.87905,
+   "lng": 74.8341,
+   "status": "resolved",
+   "level": "low",
+   "score": 16,
+   "dept": "Electricity",
+   "officer": "Er. Joseph D'Souza",
+   "ago": "17 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-6RAFHU",
+   "category": "garbage",
+   "label": "Garbage and sanitation",
+   "headline": "Garbage dump near Old Port Road gate not cleared",
+   "location": "Old Port Road",
+   "ward": "Harbour Ward",
+   "lat": 12.8601,
+   "lng": 74.8331,
+   "status": "resolved",
+   "level": "low",
+   "score": 15,
+   "dept": "Sanitation",
+   "officer": "Insp. Farah Khan",
+   "ago": "18 d ago",
+   "dup": "none"
+  },
+  {
+   "id": "CP-HWGQ49",
+   "category": "roads",
+   "label": "Roads and potholes",
+   "headline": "Speed breaker broken on Harbour Road, cracked surface near the warehouses",
+   "location": "Harbour Road warehouse stretch",
+   "ward": "Harbour Ward",
+   "lat": 12.8612,
+   "lng": 74.8356,
+   "status": "resolved",
+   "level": "low",
+   "score": 24,
+   "dept": "Roads and Infrastructure",
+   "officer": "Er. Anil Rao",
+   "ago": "19 d ago",
+   "dup": "none"
+  }
+ ],
+ "featured": {
+  "id": "CP-7RW4KD",
+  "description": "Knee deep waterlogging near the Central Bus Stand entrance after heavy rain since this morning. Commuters and school children cannot reach the buses and the drain is completely blocked.",
+  "location": "Central Bus Stand, Platform Road",
+  "ward": "Station Ward",
+  "lat": 12.8701,
+  "lng": 74.84255,
+  "category": "waterlogging",
+  "label": "Waterlogging and flooding",
+  "confidence": 0.895,
+  "evidence": [
+   "waterlogging",
+   "knee deep",
+   "heavy rain",
+   "rain"
+  ],
+  "summary": "Waterlogging and flooding at Central Bus Stand, Platform Road: Knee deep waterlogging near the Central Bus Stand entrance after heavy rain since this morning. Affects school children, bus commuters. Urgency cues: since this morning, cannot reach.",
+  "affected": [
+   "school children",
+   "bus commuters"
+  ],
+  "score": 75,
+  "level": "critical",
+  "reasoning": "Scored 75/100 (Critical). Main drivers: severity, recurring reports, geographic concentration. Strongest evidence: knee deep.",
+  "factors": [
+   {
+    "label": "Safety risk",
+    "weight": 25,
+    "points": 7.5,
+    "evidence": [
+     "category baseline (30%)"
+    ]
+   },
+   {
+    "label": "Severity",
+    "weight": 20,
+    "points": 20.0,
+    "evidence": [
+     "knee deep",
+     "completely blocked",
+     "deep"
+    ]
+   },
+   {
+    "label": "Urgency",
+    "weight": 15,
+    "points": 8.2,
+    "evidence": [
+     "since this morning",
+     "cannot reach"
+    ]
+   },
+   {
+    "label": "Public impact",
+    "weight": 15,
+    "points": 14.7,
+    "evidence": [
+     "school children",
+     "bus commuters"
+    ]
+   },
+   {
+    "label": "Recurring reports",
+    "weight": 15,
+    "points": 15.0,
+    "evidence": [
+     "5 linked similar reports",
+     "3 same-category reports within 300 m (60 days)"
+    ]
+   },
+   {
+    "label": "Geographic concentration",
+    "weight": 10,
+    "points": 10.0,
+    "evidence": [
+     "5 open reports within 400 m (14 days)"
+    ]
+   }
+  ],
+  "matches": [
+   {
+    "id": "CP-JDG58K",
+    "score": 0.693,
+    "likelihood": "likely",
+    "distance_m": 12,
+    "reasons": [
+     "Similar wording (46%): commuters, platform, entrance, central, stand",
+     "Same category",
+     "12 m apart",
+     "Reported 11.8 days apart"
+    ]
+   },
+   {
+    "id": "CP-MW86HT",
+    "score": 0.652,
+    "likelihood": "likely",
+    "distance_m": 69,
+    "reasons": [
+     "Similar wording (28%): waterlogging, commuters, children, platform, cannot",
+     "Same category",
+     "69 m apart",
+     "Reported 2.9 days apart"
+    ]
+   },
+   {
+    "id": "CP-S794U7",
+    "score": 0.622,
+    "likelihood": "likely",
+    "distance_m": 40,
+    "reasons": [
+     "Same category",
+     "40 m apart",
+     "Reported 3.4 days apart"
+    ]
+   }
+  ],
+  "action": "Send a drainage crew with a pump to clear standing water and inspect inlets",
+  "dept": "Water and Drainage",
+  "respond": "within 4 hours",
+  "timeline": [
+   {
+    "at": "30 Oct \u00b7 08:42",
+    "who": "Citizen",
+    "status": "Submitted",
+    "msg": "Report received and logged."
+   },
+   {
+    "at": "30 Oct \u00b7 08:42",
+    "who": "CivicPulse engine",
+    "status": null,
+    "msg": "Analysed: Waterlogging and flooding, priority Critical. Linked to 3 similar reports."
+   },
+   {
+    "at": "30 Oct \u00b7 09:05",
+    "who": "Ward Office",
+    "status": "Assigned",
+    "msg": "Assigned to Water and Drainage (Er. Kavya Bhat)."
+   },
+   {
+    "at": "30 Oct \u00b7 09:31",
+    "who": "Er. Kavya Bhat",
+    "status": "In progress",
+    "msg": "Pump crew dispatched to Central Bus Stand; drain inlet being cleared."
+   }
+  ]
+ }
+}

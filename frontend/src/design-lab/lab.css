@@ -1,0 +1,38 @@
+/* Neutral chrome for the Design Lab so the concepts carry the visual weight. */
+.lab { min-height: 100vh; background: #E9E9E6; color: #1C1C1C; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; display: flex; flex-direction: column; }
+.lab * { box-sizing: border-box; }
+:where(.lab-concepts, .lab-bar) button { font: inherit; cursor: pointer; }
+.lab-top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 14px 20px 8px; flex-wrap: wrap; }
+.lab-title { display: flex; gap: 10px; align-items: baseline; }
+.lab-title strong { font-size: 15px; }
+.lab-title span { font-size: 13px; color: #666; }
+.lab-note { margin: 0; font-size: 12.5px; color: #666; max-width: 640px; }
+.lab-concepts { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; padding: 6px 20px 12px; }
+.lab-card { text-align: left; display: grid; gap: 4px; align-content: start; padding: 12px 14px; border-radius: 10px; border: 1.5px solid transparent; background: #F7F7F5; color: inherit; transition: border-color .15s, background .15s; }
+.lab-card:hover { border-color: #BDBDB8; }
+.lab-card.is-on { border-color: #1C1C1C; background: #fff; box-shadow: 0 6px 18px -10px rgba(0,0,0,.35); }
+.lab-card__n { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #777; }
+.lab-card__name { font-size: 17px; font-weight: 700; }
+.lab-card__kind { font-size: 12.5px; color: #444; }
+.lab-card__sw { display: flex; gap: 0; margin: 4px 0 2px; }
+.lab-card__sw i { width: 22px; height: 12px; border: 1px solid rgba(0,0,0,.12); }
+.lab-card__line { font-size: 12px; color: #666; line-height: 1.4; }
+.lab-bar { display: flex; justify-content: space-between; gap: 10px; padding: 0 20px 10px; flex-wrap: wrap; }
+.lab-tabs, .lab-device { display: flex; gap: 4px; background: #DCDCD8; padding: 3px; border-radius: 9px; flex-wrap: wrap; }
+.lab-tabs button, .lab-device button { border: 0; background: transparent; padding: 7px 12px; border-radius: 7px; font-size: 13px; font-weight: 600; color: #444; display: inline-flex; gap: 6px; align-items: center; }
+.lab-tabs button span { font-size: 11px; color: #888; font-weight: 500; }
+.lab-tabs button.is-on, .lab-device button.is-on { background: #fff; color: #111; box-shadow: 0 1px 2px rgba(0,0,0,.15); }
+.lab-stage { flex: 1; min-height: 0; overflow: auto; padding: 0 20px 24px; }
+.lab-frame { container-type: inline-size; container-name: concept; margin: 0 auto; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 0 rgba(0,0,0,.05), 0 20px 50px -30px rgba(0,0,0,.45); }
+.lab-stage--mobile .lab-frame { width: 390px; border-radius: 28px; border: 8px solid #1C1C1C; }
+.lab :focus-visible { outline: 2px solid #1C1C1C; outline-offset: 2px; }
+
+@media (max-width: 1100px) { .lab-concepts { grid-template-columns: repeat(5, minmax(170px, 1fr)); overflow-x: auto; } }
+@media (max-width: 640px) {
+  .lab-concepts { grid-template-columns: repeat(5, 72%); scroll-snap-type: x mandatory; }
+  .lab-card { scroll-snap-align: start; }
+  .lab-stage { padding: 0 8px 16px; }
+  .lab-stage--mobile .lab-frame { width: 100%; border-width: 0; border-radius: 10px; }
+  .lab-device { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .lab * { transition: none !important; animation: none !important; } }

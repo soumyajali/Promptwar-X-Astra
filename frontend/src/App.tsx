@@ -20,6 +20,7 @@ const MapPage = lazy(() => import('./pages/command/MapPage').then((m) => ({ defa
 const Overview = lazy(() => import('./pages/command/Overview').then((m) => ({ default: m.Overview })))
 const ReportDetail = lazy(() => import('./pages/command/ReportDetail').then((m) => ({ default: m.ReportDetail })))
 const Reports = lazy(() => import('./pages/command/Reports').then((m) => ({ default: m.Reports })))
+const DesignLab = lazy(() => import('./design-lab/Lab').then((m) => ({ default: m.DesignLab })))
 const L = ({ children }: { children: ReactNode }) => <Suspense fallback={<div className="cpage"><Skeleton h={400} /></div>}>{children}</Suspense>
 
 export default function App() {
@@ -35,6 +36,8 @@ export default function App() {
               <Route path="track/:id" element={<Track />} />
               <Route path="*" element={<NotFound />} />
             </Route>
+            {/* Design exploration — separate from the live app; nothing here changes existing pages. */}
+            <Route path="design-lab" element={<Suspense fallback={null}><DesignLab /></Suspense>} />
             <Route path="command/login" element={<Login />} />
             <Route path="command" element={<CommandLayout />}>
               <Route index element={<L><Overview /></L>} />
