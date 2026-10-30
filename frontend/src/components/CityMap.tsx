@@ -35,13 +35,13 @@ function pinIcon(level: Level, closed: boolean, selected: boolean, isNew: boolea
   return icons.get(key)!
 }
 
-function FitTo({ points, fitKey }: { points: [number, number][]; fitKey?: string }) {
+function FitTo({ points, fitKey, zoom = 16 }: { points: [number, number][]; fitKey?: string; zoom?: number }) {
   const map = useMap()
   const done = useRef<string | undefined>(undefined)
   useEffect(() => {
     if (!points.length || done.current === fitKey) return
     done.current = fitKey
-    if (points.length === 1) map.setView(points[0], 16)
+    if (points.length === 1) map.setView(points[0], zoom)
     else map.fitBounds(L.latLngBounds(points).pad(0.12), { maxZoom: 16 })
   }, [map, points, fitKey])
   return null
@@ -69,7 +69,7 @@ function InvalidateOnResize() {
 }
 
 export function CityMap({
-  points = [], hotspots = [], showHotspots = true, selectedId, onSelect, height = 420, pick, onPick,
+  points = [], hotspots = [], showHotspots = true, selectedId, onSelect, height = 420, pick, pickAccuracy, onPick,
   fitKey = 'default', newId, flyTo, scrollZoom = true, renderPopup,
 }: {
   points?: MapPoint[]
@@ -79,6 +79,8 @@ export function CityMap({
   onSelect?: (id: string) => void
   height?: number | string
   pick?: { lat: number; lng: number } | null
+  /** Accuracy radius in metres for a device-detected pin; drawn as a circle and used to pick the zoom. */
+  pickAccuracy?: number
   onPick?: (lat: number, lng: number) => void
   fitKey?: string
   newId?: string
@@ -101,7 +103,8 @@ export function CityMap({
         />
         <InvalidateOnResize />
         {!pick && bounds.length > 0 && <FitTo points={bounds} fitKey={fitKey} />}
-        {pick && <FitTo points={[[pick.lat, pick.lng]]} fitKey={`pick-${fitKey}`} />}
+        {pick && <FitTo points={[[pick.lat, pick.lng]]} fitKey={`pick-${fitKey}`}
+          zoom={!pickAccuracy || pickAccuracy < 150 ? 17 : pickAccuracy < 600 ? 16 : pickAccuracy < 2500 ? 14 : 12} />}
         <FlyTo target={flyTo} />
         {onPick && <ClickPicker onPick={onPick} />}
         {showHotspots && hotspots.map((h) => (
@@ -132,6 +135,10 @@ export function CityMap({
             </Marker>
           )
         })}
+        {pick && pickAccuracy && (
+          <Circle center={[pick.lat, pick.lng]} radius={pickAccuracy} interactive={false}
+            pathOptions={{ color: '#93C3A5', weight: 1.5, fillColor: '#93C3A5', fillOpacity: .12 }} />
+        )}
         {pick && <Marker position={[pick.lat, pick.lng]} icon={pinIcon('critical', false, true, true)} />}
       </MapContainer>
       {tileErrors > 3 && (

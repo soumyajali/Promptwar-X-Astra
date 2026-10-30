@@ -54,6 +54,8 @@ class Update(BaseModel):
 
 class Question(BaseModel):
     question: str = Field(..., max_length=500)
+    # Slots from the previous answer (category, ward, scope) so follow-ups like "and in Market Ward?" work.
+    context: dict | None = None
 
 
 class Login(BaseModel):
@@ -67,8 +69,12 @@ class Preview(BaseModel):
 _contact = re.compile(r"^[0-9+\-\s()]{7,20}$|^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
+LOCATION_SOURCES = {"device", "map", "demo"}
+
+
 def validate_submission(description: str, location_text: str, category: str | None, lat, lng,
-                        name: str | None, contact: str | None, affected: int | None) -> dict[str, str]:
+                        name: str | None, contact: str | None, affected: int | None,
+                        location_source: str | None = None, location_accuracy: float | None = None) -> dict[str, str]:
     errors: dict[str, str] = {}
     d = (description or "").strip()
     if len(d) < 15:
@@ -86,6 +92,15 @@ def validate_submission(description: str, location_text: str, category: str | No
         errors["location"] = "Both latitude and longitude are needed."
     if lat is not None and not (-90 <= lat <= 90 and -180 <= lng <= 180):
         errors["location"] = "Coordinates are out of range."
+    elif lat is not None and lat == 0 and lng == 0:
+        errors["location"] = "0, 0 is not a real location. Place the pin again."
+    if location_source is not None:
+        if location_source not in LOCATION_SOURCES:
+            errors["location"] = "Unknown location source."
+        elif lat is None:
+            errors["location"] = "A location source was given without coordinates."
+    if location_accuracy is not None and not (0 < location_accuracy <= 100_000):
+        errors["location"] = "Location accuracy must be between 0 and 100 km."
     if name and len(name) > 80:
         errors["reporter_name"] = "Name is too long."
     if contact and not _contact.match(contact.strip()):

@@ -323,3 +323,11 @@
   .brief__doc { border: 0; padding: 0; }
   body { background: #fff; color: #111; }
 }
+
+/* assistant: states added with the messaging fix */
+.drawer__headbtns { display: flex; gap: 4px; align-items: flex-start; }
+.turn__wait { display: flex; gap: 8px; align-items: center; font-size: 13.5px; color: var(--muted); }
+.turn__err { display: grid; gap: 8px; justify-items: start; padding: 12px 14px; border-radius: 2px 14px 14px 14px; background: var(--signal-tint); border: 1px solid rgba(229, 123, 86, .4); font-size: 14px; }
+.assist-follow { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 20px 0; border-top: 1px solid var(--rule); }
+.chip--sm { height: auto; min-height: 30px; padding: 4px 10px; font-size: 12.5px; font-weight: 600; }
+.turn__meta { font-family: var(--font-ui); }

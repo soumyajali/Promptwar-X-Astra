@@ -17,6 +17,8 @@ MAX_IMAGE_BYTES = int(os.getenv("CIVICPULSE_MAX_IMAGE_MB", "5")) * 1024 * 1024
 ALLOWED_ORIGINS = [o.strip() for o in os.getenv(
     "CIVICPULSE_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",") if o.strip()]
 AUTO_SEED = os.getenv("CIVICPULSE_AUTO_SEED", "1") == "1"
+# Local time offset used for "today" / "this week" in assistant answers (Demo City is in India: UTC+05:30).
+TZ_OFFSET_MIN = int(os.getenv("CIVICPULSE_TZ_OFFSET_MIN", "330"))
 
 # Demonstration area: synthetic reports placed on real-world coordinates (Mangaluru, Karnataka)
 # but with fictional ward and street names. Nothing here is real municipal data.

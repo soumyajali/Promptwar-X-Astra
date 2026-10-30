@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS reports (
     ward                 TEXT,
     lat                  REAL,
     lng                  REAL,
+    location_source      TEXT,
+    location_accuracy_m  REAL,
     image_path           TEXT,
     reporter_name        TEXT,
     reporter_contact     TEXT,
@@ -84,11 +86,27 @@ def _connect(path: Path) -> sqlite3.Connection:
 _conn: sqlite3.Connection | None = None
 
 
+# Columns added after the first release. Existing databases are upgraded in place on start.
+MIGRATIONS = {
+    "reports": {"location_source": "TEXT", "location_accuracy_m": "REAL"},
+}
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    for table, cols in MIGRATIONS.items():
+        have = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+        for name, kind in cols.items():
+            if name not in have:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {kind}")
+    conn.commit()
+
+
 def get_conn() -> sqlite3.Connection:
     global _conn
     if _conn is None:
         _conn = _connect(config.DB_PATH)
         _conn.executescript(SCHEMA)
+        _migrate(_conn)
     return _conn
 
 

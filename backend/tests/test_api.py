@@ -147,3 +147,108 @@ def test_reset_demo(client):
     r = client.post("/api/authority/demo/reset", headers=AUTH)
     assert r.json()["reports"] == 46
     assert client.get("/api/health").json()["reports"] == 46
+
+
+# ---------- location fix
+def test_device_location_saved_with_source_and_accuracy(client):
+    res = submit(client, location_source="device", location_accuracy_m="35")
+    assert res.status_code == 201, res.text
+    r = client.get(f"/api/authority/reports/{res.json()['id']}", headers=AUTH).json()
+    assert (r["lat"], r["lng"]) == (12.8701, 74.84255)
+    assert r["location_source"] == "device" and r["location_accuracy_m"] == 35
+
+
+def test_map_pin_saved_without_accuracy(client):
+    res = submit(client, location_source="map", location_accuracy_m="35")
+    r = client.get(f"/api/authority/reports/{res.json()['id']}", headers=AUTH).json()
+    assert r["location_source"] == "map" and r["location_accuracy_m"] is None  # accuracy only kept for device fixes
+
+
+def test_rejects_null_island_and_bad_source(client):
+    res = client.post("/api/reports", data={**DEMO, "lat": "0", "lng": "0"})
+    assert res.status_code == 422 and "location" in res.json()["detail"]["fields"]
+    res = client.post("/api/reports", data={**DEMO, "location_source": "satellite"})
+    assert res.status_code == 422
+    nolatlng = {k: v for k, v in DEMO.items() if k not in ("lat", "lng")}
+    res = client.post("/api/reports", data={**nolatlng, "location_source": "device"})
+    assert res.status_code == 422
+
+
+# ---------- assistant fix
+def ask(client, q, context=None):
+    return client.post("/api/authority/assistant", headers=AUTH, json={"question": q, "context": context}).json()
+
+
+def test_assistant_handles_normal_messages(client):
+    for q, intent in [("hello", "greeting"), ("what can you do?", "help"), ("thanks", "thanks")]:
+        a = ask(client, q)
+        assert a["intent"] == intent and a["answer"] and a["engine"] == "local"
+
+
+def test_assistant_hotspots_and_nearby(client):
+    hs = client.get("/api/authority/hotspots", headers=AUTH).json()
+    a = ask(client, "Show all hotspots")
+    assert a["intent"] == "hotspots" and all(h["id"] in a["answer"] for h in hs)
+    a = ask(client, "Which hotspots are near the bus stand?")
+    assert "Nearest hotspot to" in a["answer"] and "H1" in a["answer"]
+    a = ask(client, "hotspots near Atlantis")
+    assert "couldn't find a stored location" in a["answer"]
+
+
+def test_assistant_unassigned_and_time_scope(client):
+    reports = client.get("/api/authority/reports", headers=AUTH).json()
+    unassigned = [r for r in reports if r["status"] not in ("resolved", "rejected") and not r["department"]]
+    assert ask(client, "List unassigned reports")["answer"].startswith(f"{len(unassigned)} open reports have no department")
+    before = ask(client, "How many reports came in today?")["answer"]
+    n = int(before.split()[0])
+    submit(client)  # a report created now counts as today
+    after = ask(client, "How many reports came in today?")["answer"]
+    assert after.startswith(f"{n + 1} reports were received today")
+
+
+def test_assistant_follow_up_uses_context(client):
+    first = ask(client, "Show recurring garbage complaints")
+    follow = ask(client, "and in Market Ward?", first["slots"])
+    assert "Market Ward" in follow["answer"] and "garbage" in follow["answer"].lower()
+
+
+def test_llm_used_only_when_grounded(client, monkeypatch):
+    """With a key set, a reply is used only if every figure in it is in the computed facts."""
+    import httpx
+    from app.services import llm
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    replies = {"text": ""}
+
+    class FakeClient:
+        def __init__(self, *a, **k): pass
+        def post(self, url, headers, json):
+            assert headers["x-api-key"] == "test-key" and json["model"] == llm.MODEL
+            return httpx.Response(200, json={"content": [{"type": "text", "text": replies["text"]}]})
+        def close(self): pass
+
+    monkeypatch.setattr(llm.httpx, "Client", FakeClient)
+    local = ask(client, "How many critical complaints are pending?")
+    n = local["answer"].split()[0]
+    replies["text"] = f"There are {n} critical complaints pending right now."
+    a = ask(client, "How many critical complaints are pending?")
+    assert a["engine"] == "claude" and a["answer"] == replies["text"] and a["computed_answer"] == local["answer"]
+    replies["text"] = "There are 999 critical complaints pending."  # invented figure → rejected
+    a = ask(client, "How many critical complaints are pending?")
+    assert a["engine"] == "local" and a["answer"] == local["answer"] and "figures not in the data" in a["fallback_reason"]
+
+
+def test_llm_failure_falls_back_to_local(client, monkeypatch):
+    import httpx
+    from app.services import llm
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+
+    class Boom:
+        def __init__(self, *a, **k): pass
+        def post(self, *a, **k): raise httpx.ConnectError("no route")
+        def close(self): pass
+
+    monkeypatch.setattr(llm.httpx, "Client", Boom)
+    a = ask(client, "Show all hotspots")
+    assert a["engine"] == "local" and a["intent"] == "hotspots" and "unavailable" in a["fallback_reason"]

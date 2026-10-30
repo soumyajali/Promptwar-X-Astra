@@ -1,4 +1,4 @@
-import { ArrowRight, Camera, Check, CircleAlert, Copy, Crosshair, ImagePlus, Loader2, MapPin, Sparkles, X } from 'lucide-react'
+import { ArrowRight, Camera, Check, CircleAlert, CircleCheck, Copy, Crosshair, ImagePlus, Loader2, MapPin, MousePointerClick, Sparkles, X } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { CityMap } from '../components/CityMap'
@@ -6,15 +6,27 @@ import { CategoryTag, PageBanner, PriorityBadge, ScoreBreakdown, StatusPill } fr
 import { ApiError, api } from '../lib/api'
 import { CATEGORY_KEYS, CATEGORY_META, DEMO_EXAMPLE } from '../lib/constants'
 import { distance, pct } from '../lib/format'
+import { fmtAccuracy, GeoError, insecureMessage, locate, permissionState, refine, type GeoErrorKind } from '../lib/geolocation'
 import type { CategoryKey, Preview, TrackView } from '../lib/types'
 
 const MAX_MB = 5
+
+/** Where the pin came from. Shown next to the coordinates and saved with the report. */
+type PinSource = 'device' | 'map' | 'demo'
+interface Pin { lat: number; lng: number; source: PinSource; accuracy?: number }
+type GeoStatus =
+  | { state: 'idle' }
+  | { state: 'locating' }
+  | { state: 'refining' }
+  | { state: 'success'; accuracy: number }
+  | { state: 'error'; kind: GeoErrorKind; message: string }
 
 export function Report() {
   const [category, setCategory] = useState<CategoryKey | ''>('')
   const [description, setDescription] = useState('')
   const [location, setLocation] = useState('')
-  const [pin, setPin] = useState<{ lat: number; lng: number } | null>(null)
+  const [pin, setPin] = useState<Pin | null>(null)
+  const [fitKey, setFitKey] = useState(0) // bumps only when the device or demo sets the pin, so map taps don't re-centre
   const [image, setImage] = useState<File | null>(null)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [name, setName] = useState('')
@@ -23,7 +35,7 @@ export function Report() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [geoState, setGeoState] = useState<string | null>(null)
+  const [geo, setGeo] = useState<GeoStatus>({ state: 'idle' })
   const [preview, setPreview] = useState<Preview | null>(null)
   const [result, setResult] = useState<TrackView | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -51,21 +63,42 @@ export function Report() {
     setImageUrl(URL.createObjectURL(f))
   }
 
-  const useMyLocation = () => {
-    if (!('geolocation' in navigator)) { setGeoState('Location is not available in this browser. Tap the map instead.'); return }
-    setGeoState('Finding you…')
-    navigator.geolocation.getCurrentPosition(
-      (p) => { setPin({ lat: +p.coords.latitude.toFixed(6), lng: +p.coords.longitude.toFixed(6) }); setGeoState(`Located within about ${Math.round(p.coords.accuracy)} m.`) },
-      () => setGeoState('Could not get your location (permission denied or unavailable). Tap the map to place the pin.'),
-      { enableHighAccuracy: true, timeout: 8000 },
-    )
+  const useMyLocation = async () => {
+    if (geo.state === 'locating' || geo.state === 'refining') return
+    if (!window.isSecureContext) { setGeo({ state: 'error', kind: 'insecure', message: insecureMessage() }); return }
+    // Permission is requested only here, on the user's click. If it was blocked earlier, say so without prompting.
+    if ((await permissionState()) === 'denied') {
+      setGeo({ state: 'error', kind: 'denied', message: 'Location permission is blocked for this site. Allow it from the site settings (the icon left of the address) and press “Use my location” again, or tap the map.' })
+      return
+    }
+    setGeo({ state: 'locating' })
+    try {
+      const fix = await locate()
+      setPin({ lat: fix.lat, lng: fix.lng, source: 'device', accuracy: fix.accuracy })
+      setFitKey((k) => k + 1)
+      setErrors((e) => ({ ...e, location: '' }))
+      if (fix.accuracy > 50) {
+        setGeo({ state: 'refining' })
+        const better = await refine(fix)
+        const best = better ?? fix
+        if (better) { setPin({ lat: better.lat, lng: better.lng, source: 'device', accuracy: better.accuracy }); setFitKey((k) => k + 1) }
+        setGeo({ state: 'success', accuracy: best.accuracy })
+      } else {
+        setGeo({ state: 'success', accuracy: fix.accuracy })
+      }
+    } catch (e) {
+      const err = e instanceof GeoError ? e : new GeoError('unavailable', 'Could not get a position from the browser.')
+      setGeo({ state: 'error', kind: err.kind, message: err.message })
+    }
   }
 
   const fillDemo = () => {
     setCategory('waterlogging')
     setDescription(DEMO_EXAMPLE.description)
     setLocation(DEMO_EXAMPLE.location)
-    setPin({ lat: DEMO_EXAMPLE.lat, lng: DEMO_EXAMPLE.lng })
+    setPin({ lat: DEMO_EXAMPLE.lat, lng: DEMO_EXAMPLE.lng, source: 'demo' })
+    setFitKey((k) => k + 1)
+    setGeo({ state: 'idle' })
   }
 
   const validate = () => {
@@ -87,7 +120,10 @@ export function Report() {
     fd.set('description', description.trim())
     fd.set('location_text', location.trim())
     if (category) fd.set('category', category)
-    if (pin) { fd.set('lat', String(pin.lat)); fd.set('lng', String(pin.lng)) }
+    if (pin) {
+      fd.set('lat', String(pin.lat)); fd.set('lng', String(pin.lng)); fd.set('location_source', pin.source)
+      if (pin.source === 'device' && pin.accuracy) fd.set('location_accuracy_m', String(pin.accuracy))
+    }
     if (name.trim()) fd.set('reporter_name', name.trim())
     if (contact.trim()) fd.set('reporter_contact', contact.trim())
     if (affected) fd.set('affected_people', String(parseInt(affected, 10)))
@@ -103,7 +139,7 @@ export function Report() {
   }
 
   if (result) return <Submitted r={result} onAnother={() => {
-    setResult(null); setDescription(''); setLocation(''); setPin(null); setImage(null); setImageUrl(null); setCategory(''); setAffected('')
+    setResult(null); setDescription(''); setLocation(''); setPin(null); setGeo({ state: 'idle' }); setImage(null); setImageUrl(null); setCategory(''); setAffected('')
   }} />
 
   return (
@@ -116,8 +152,8 @@ export function Report() {
       <form className="report__grid" onSubmit={submit} noValidate>
         <div className="report__form">
           {/* 1 */}
-          <fieldset className="step">
-            <legend><span className="step__n mono">1</span> What’s the problem?</legend>
+          <section className="step" role="group" aria-labelledby="step-1">
+            <h2 className="step__title" id="step-1"><span className="step__n mono">1</span> What’s the problem?</h2>
             <div className="chips" role="radiogroup" aria-label="Category (optional)">
               {CATEGORY_KEYS.map((k) => {
                 const Icon = CATEGORY_META[k].icon
@@ -153,11 +189,11 @@ export function Report() {
                 </div>
               </div>
             )}
-          </fieldset>
+          </section>
 
           {/* 2 */}
-          <fieldset className="step">
-            <legend><span className="step__n mono">2</span> Where is it?</legend>
+          <section className="step" role="group" aria-labelledby="step-2">
+            <h2 className="step__title" id="step-2"><span className="step__n mono">2</span> Where is it?</h2>
             <div className="field">
               <label htmlFor="loc">Landmark, street or area</label>
               <input id="loc" className="input" value={location} maxLength={200} aria-invalid={!!errors.location_text}
@@ -166,23 +202,41 @@ export function Report() {
             </div>
             <div className="picker">
               <div className="picker__bar">
-                <span className="small"><MapPin size={15} /> {pin ? <span className="mono">{pin.lat.toFixed(5)}, {pin.lng.toFixed(5)}</span> : 'Tap the map to drop a pin'}</span>
+                <span className="small picker__coords" aria-live="polite">
+                  <MapPin size={15} />
+                  {pin ? <>
+                    <span className="mono">{pin.lat.toFixed(5)}, {pin.lng.toFixed(5)}</span>
+                    <span className={`pin-src pin-src--${pin.source}`}>
+                      {pin.source === 'device' ? <>Your device{pin.accuracy ? ` · ${fmtAccuracy(pin.accuracy)}` : ''}</> : pin.source === 'map' ? 'Placed on map' : 'Demo example'}
+                    </span>
+                  </> : 'No location yet: use your location or tap the map'}
+                </span>
                 <span className="picker__btns">
-                  {pin && <button type="button" className="btn btn--quiet btn--sm" onClick={() => setPin(null)}><X />Clear</button>}
-                  <button type="button" className="btn btn--ghost btn--sm" onClick={useMyLocation}><Crosshair />Use my location</button>
+                  {pin && <button type="button" className="btn btn--quiet btn--sm" onClick={() => { setPin(null); setGeo({ state: 'idle' }) }}><X />Clear</button>}
+                  <button type="button" className="btn btn--ghost btn--sm" onClick={useMyLocation} disabled={geo.state === 'locating'} aria-busy={geo.state === 'locating'}>
+                    {geo.state === 'locating' ? <Loader2 className="spin" /> : <Crosshair />}{geo.state === 'locating' ? 'Locating…' : 'Use my location'}
+                  </button>
                 </span>
               </div>
               <div className="picker__map">
-                <CityMap height="100%" pick={pin} onPick={(lat, lng) => setPin({ lat: +lat.toFixed(6), lng: +lng.toFixed(6) })} scrollZoom={false} fitKey={pin ? `${pin.lat}` : 'none'} />
+                <CityMap height="100%" pick={pin} pickAccuracy={pin?.source === 'device' ? pin.accuracy : undefined}
+                  onPick={(lat, lng) => { setPin({ lat: +lat.toFixed(6), lng: +lng.toFixed(6), source: 'map' }); setGeo({ state: 'idle' }); setErrors((e) => ({ ...e, location: '' })) }}
+                  scrollZoom={false} fitKey={`fit-${fitKey}`} />
               </div>
-              {geoState && <p className="hint">{geoState}</p>}
+              <div className="geo-status" role="status" aria-live="polite">
+                {geo.state === 'locating' && <p className="geo geo--busy"><Loader2 className="spin" size={15} />Asking your browser for your position. If a permission prompt appears, choose Allow.</p>}
+                {geo.state === 'refining' && <p className="geo geo--ok"><CircleCheck size={15} />Location found. Improving accuracy…</p>}
+                {geo.state === 'success' && pin?.source === 'device' && <p className="geo geo--ok"><CircleCheck size={15} />Location detected by your device, accurate to about {fmtAccuracy(geo.accuracy)}. Drag the map or tap to adjust.</p>}
+                {geo.state === 'error' && <p className="geo geo--err"><CircleAlert size={15} />{geo.message}{pin ? ' The pin shown was placed earlier and has not changed.' : ''}</p>}
+                {geo.state === 'idle' && !pin && <p className="hint"><MousePointerClick size={14} /> You can also tap the map to place the pin yourself.</p>}
+              </div>
               {errors.location && <span className="error">{errors.location}</span>}
             </div>
-          </fieldset>
+          </section>
 
           {/* 3 */}
-          <fieldset className="step">
-            <legend><span className="step__n mono">3</span> Add a photo <span className="muted">(optional)</span></legend>
+          <section className="step" role="group" aria-labelledby="step-3">
+            <h2 className="step__title" id="step-3"><span className="step__n mono">3</span> Add a photo <span className="muted">(optional)</span></h2>
             <input ref={fileRef} id="photo" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden
               onChange={(e) => pickImage(e.target.files?.[0])} />
             {imageUrl ? (
@@ -204,11 +258,11 @@ export function Report() {
               </button>
             )}
             {errors.image && <span className="error">{errors.image}</span>}
-          </fieldset>
+          </section>
 
           {/* 4 */}
-          <fieldset className="step">
-            <legend><span className="step__n mono">4</span> A little more <span className="muted">(optional)</span></legend>
+          <section className="step" role="group" aria-labelledby="step-4">
+            <h2 className="step__title" id="step-4"><span className="step__n mono">4</span> A little more <span className="muted">(optional)</span></h2>
             <div className="field-grid">
               <div className="field">
                 <label htmlFor="aff">People affected (estimate)</label>
@@ -226,7 +280,7 @@ export function Report() {
               </div>
             </div>
             <p className="hint">Only the ward office sees your name and contact. They are never shown on public pages.</p>
-          </fieldset>
+          </section>
 
           {formError && <div className="notice notice--danger" role="alert"><CircleAlert />{formError}</div>}
           <div className="report__submit">

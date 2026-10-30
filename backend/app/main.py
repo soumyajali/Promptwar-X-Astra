@@ -54,7 +54,10 @@ async def unhandled(request: Request, exc: Exception):
 @app.get("/api/health")
 def health():
     count = db.query("SELECT COUNT(*) AS n FROM reports")[0]["n"]
-    return {"ok": True, "reports": count, "sse_clients": broker.subscriber_count, "llm": "not used (deterministic engine)"}
+    from .services import llm
+
+    return {"ok": True, "reports": count, "sse_clients": broker.subscriber_count,
+            "assistant_engine": "claude + local fallback" if llm.enabled() else "local (no ANTHROPIC_API_KEY set)"}
 
 
 @app.get("/api/events")

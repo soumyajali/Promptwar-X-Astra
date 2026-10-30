@@ -62,10 +62,14 @@ async def submit_report(
     reporter_name: str | None = Form(None),
     reporter_contact: str | None = Form(None),
     affected_people: int | None = Form(None),
+    location_source: str | None = Form(None),
+    location_accuracy_m: float | None = Form(None),
     image: UploadFile | None = File(None),
 ):
     category = category or None
-    errors = validate_submission(description, location_text, category, lat, lng, reporter_name, reporter_contact, affected_people)
+    location_source = location_source or None
+    errors = validate_submission(description, location_text, category, lat, lng, reporter_name, reporter_contact,
+                                 affected_people, location_source, location_accuracy_m)
     image_name = None
     if image is not None and image.filename:
         data = await image.read(config.MAX_IMAGE_BYTES + 1)
@@ -91,6 +95,9 @@ async def submit_report(
         "lat": lat, "lng": lng, "ward": ward, "reporter_name": (reporter_name or "").strip() or None,
         "reporter_contact": (reporter_contact or "").strip() or None, "affected_people": affected_people,
         "image_path": image_name, "channel": "web",
+        # Where the pin came from: the citizen's device (with its stated accuracy), a map tap, or the demo button.
+        "location_source": location_source if lat is not None else None,
+        "location_accuracy_m": round(location_accuracy_m, 1) if (location_accuracy_m and location_source == "device") else None,
     })
     view = tracking_view(report)
     # The citizen gets to see the full matching evidence for their own report.

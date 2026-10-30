@@ -9,6 +9,7 @@ from .. import config, repository as repo
 from ..schemas import Assignment, CategoryCorrection, Login, PriorityOverride, Question, StatusChange, Update, authority_view
 from ..services import workflow as wf
 from ..services.analytics import dashboard
+from ..services import llm
 from ..services.assistant import answer
 from ..services.brief import action_brief
 from ..services.hotspots import detect_hotspots
@@ -97,7 +98,20 @@ def brief(ward: str | None = None):
 
 @protected.post("/assistant")
 def assistant(body: Question):
-    return answer(body.question)
+    """Answer from stored data. If an API key is configured, a language model may rephrase the computed
+    answer; any failure or unsupported figure falls back to the local answer, and `engine` says which ran."""
+    local = answer(body.question, body.context)
+    local["engine"] = "local"
+    if llm.enabled() and local["intent"] not in ("empty",):
+        text, why = llm.phrase(body.question, local)
+        if text:
+            local["computed_answer"] = local["answer"]
+            local["answer"] = text
+            local["engine"] = "claude"
+            local["model"] = llm.MODEL
+        else:
+            local["fallback_reason"] = why
+    return local
 
 
 @protected.post("/demo/reset")

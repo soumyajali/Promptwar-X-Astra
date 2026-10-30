@@ -156,6 +156,8 @@ export interface AuthorityReport {
   ward: string | null
   lat: number | null
   lng: number | null
+  location_source: 'device' | 'map' | 'demo' | null
+  location_accuracy_m: number | null
   image_url: string | null
   reporter_name: string | null
   reporter_contact: string | null
@@ -296,7 +298,12 @@ export interface AssistantAnswer {
   answer: string
   evidence: string[]
   items: { id: string; label: string; location: string; level: Level; score: number; status: string }[]
+  slots?: Record<string, string>
+  suggestions?: string[]
   source?: string
+  engine?: 'local' | 'claude'
+  model?: string
+  fallback_reason?: string
 }
 
 export interface Preview {

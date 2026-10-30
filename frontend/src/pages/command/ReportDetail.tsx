@@ -56,7 +56,8 @@ export function ReportDetail() {
             <div className="detail__report">
               <div className="stack">
                 <p>{r.description}</p>
-                <p className="small"><MapPin size={14} /> {r.location_text}{r.ward ? ` · ${r.ward}` : ''}{r.lat != null && <span className="mono muted"> · {r.lat.toFixed(5)}, {r.lng!.toFixed(5)}</span>}</p>
+                <p className="small"><MapPin size={14} /> {r.location_text}{r.ward ? ` · ${r.ward}` : ''}{r.lat != null && <span className="mono muted"> · {r.lat.toFixed(5)}, {r.lng!.toFixed(5)}</span>}
+                  {r.lat != null && <span className="muted"> · {r.location_source === 'device' ? `located by the citizen’s device${r.location_accuracy_m ? ` (±${Math.round(r.location_accuracy_m)} m)` : ''}` : r.location_source === 'map' ? 'pin placed on the map by the citizen' : r.location_source === 'demo' ? 'demo example location' : 'source not recorded'}</span>}</p>
                 {r.affected_people && <p className="small">Affected people (stated): <strong>{r.affected_people}</strong></p>}
                 <div className="reporter small">
                   <span><User size={14} />{r.reporter_name ?? 'Anonymous'}</span>

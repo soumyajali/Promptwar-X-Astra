@@ -29,7 +29,7 @@ and citizens never hear back.
 
 **Citizen**
 - Landing page with a photographic city hero, live statistics bar, a data-driven city map (every dot is a real stored report), hotspots and a public ledger
-- Report form: 8 categories, live classifier hint while typing, map pin picker + "use my location", photo upload with preview (JPEG/PNG/WebP ≤ 5 MB, magic-byte checked), validation with field-level errors
+- Report form: 8 categories, live classifier hint while typing, map pin picker + "use my location" (browser Geolocation API with separate states for locating, success, permission denied, timeout, unavailable, unsupported and insecure page; accuracy circle; pin source saved), photo upload with preview (JPEG/PNG/WebP ≤ 5 MB, magic-byte checked), validation with field-level errors
 - Instant analysis shown after submit: category, summary, similar reports with reasons and distance, priority breakdown, recommended action
 - Tracking page: progress stepper, live timeline, department, target response, resolution note, photo, map
 
@@ -43,7 +43,7 @@ and citizens never hear back.
 - Assignments — unassigned queue with one-click suggested department; per-department boards with officer load
 - Analytics — trend, backlog, status, ward, priority, department performance
 - Action briefs — per ward or city-wide, **Calculated** facts separated from **Suggested** actions, printable
-- Ask CivicPulse — intent-recognition assistant that answers only from stored data, with evidence
+- Ask CivicPulse — assistant that answers only from stored data, with evidence: greetings/help, critical, hotspots (also near a named place), unassigned, today/this-week counts, priorities, duplicates, status, ward and follow-up questions. Messages queue in order, failures show Retry. If `ANTHROPIC_API_KEY` is set, a language model may rephrase the computed answer; replies with figures not in the data are rejected and every answer says which engine produced it
 
 ## Architecture
 
@@ -154,7 +154,13 @@ npm run dev                          # http://localhost:5173  (proxies /api to :
 **Single-process mode** (for a demo machine): `cd frontend && npm run build`, then start only the backend and open
 http://localhost:8000 — FastAPI serves the built app.
 
-Optional configuration: copy `backend/.env.example` and export the variables (no secrets are required).
+Optional configuration: copy `backend/.env.example` and export the variables. No secrets are required.
+`ANTHROPIC_API_KEY` is optional; without it the local assistant engine answers everything.
+
+**Location needs a secure page.** Browsers only allow geolocation on `https://` or `http://localhost`.
+Opening the dev server from another device by IP (`http://192.168.x.x:5173`) is an insecure context, so
+"Use my location" explains this instead of failing silently. To test on a phone, deploy over HTTPS or use an
+HTTPS tunnel; tapping the map always works.
 
 **Tests:** `cd backend && pytest` (26 tests: classifier, summariser, duplicates, priority, recommendations, DBSCAN,
 creation pipeline, validation, image checks, auth gate, assignment, status transitions, timeline visibility,

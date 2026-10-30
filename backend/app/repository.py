@@ -40,7 +40,7 @@ def get_report(rid: str) -> dict | None:
 
 def insert_report(r: dict) -> None:
     cols = ["id", "description", "category_selected", "category", "category_predicted", "category_confidence",
-            "location_text", "ward", "lat", "lng", "image_path", "reporter_name", "reporter_contact",
+            "location_text", "ward", "lat", "lng", "location_source", "location_accuracy_m", "image_path", "reporter_name", "reporter_contact",
             "affected_people", "channel", "status", "priority_score", "priority_level", "department", "officer",
             "summary", "analysis_json", "primary_report_id", "created_at", "updated_at", "resolved_at",
             "resolution_note"]
