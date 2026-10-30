@@ -11,8 +11,8 @@ export function Logo({ light = false, compact = false }: { light?: boolean; comp
   return (
     <span className={`logo ${light ? 'logo--light' : ''}`}>
       <svg viewBox="0 0 32 32" aria-hidden="true" className="logo__mark">
-        <rect width="32" height="32" rx="7" fill={light ? '#F2EEE5' : '#1D4A3C'} />
-        <path d="M4 18h6l2.5-7 4 13 3-9 1.5 3H28" fill="none" stroke={light ? '#1D4A3C' : '#F2EEE5'} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+        <rect width="32" height="32" rx="7" fill={light ? '#E4E1D1' : '#2C5040'} />
+        <path d="M4 18h6l2.5-7 4 13 3-9 1.5 3H28" fill="none" stroke={light ? '#2C5040' : '#ECE8DC'} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
         <circle cx="22" cy="18" r="2.4" fill="#E2622F" />
       </svg>
       {!compact && (
@@ -21,6 +21,21 @@ export function Logo({ light = false, compact = false }: { light?: boolean; comp
         </span>
       )}
     </span>
+  )
+}
+
+/** Photographic page banner shared by the citizen pages (same city image as the landing hero). */
+export function PageBanner({ eyebrow, title, children }: { eyebrow: string; title: string; children?: ReactNode }) {
+  return (
+    <section className="banner">
+      <img className="banner__img" src="/img/hero-city-sm.jpg" alt="" />
+      <div className="banner__shade" aria-hidden />
+      <div className="wrap banner__inner">
+        <span className="eyebrow eyebrow--light">{eyebrow}</span>
+        <h1 className="serif display-1">{title}</h1>
+        {children}
+      </div>
+    </section>
   )
 }
 
@@ -111,7 +126,7 @@ export function LiveIndicator({ light = false }: { light?: boolean }) {
   const { state } = useLive()
   const label = state === 'live' ? 'Live' : state === 'polling' ? 'Polling · 15s' : 'Connecting'
   return (
-    <span className={`live live--${state}`} style={light ? { color: 'var(--paper)' } : undefined}
+    <span className={`live live--${state}`} style={light ? { color: 'var(--ink)' } : undefined}
       title={state === 'live' ? 'Connected via Server-Sent Events' : state === 'polling' ? 'Live stream unavailable; refreshing every 15 seconds' : 'Connecting to live updates'}>
       <i />{label}
     </span>

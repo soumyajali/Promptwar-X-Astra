@@ -5,13 +5,21 @@ import { Logo } from '../components/ui'
 
 export function PublicLayout() {
   const [open, setOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const loc = useLocation()
+  const overHero = loc.pathname === '/'
   useEffect(() => { setOpen(false); window.scrollTo(0, 0) }, [loc.pathname])
+  useEffect(() => {
+    const on = () => setScrolled(window.scrollY > 24)
+    on()
+    window.addEventListener('scroll', on, { passive: true })
+    return () => window.removeEventListener('scroll', on)
+  }, [])
 
   return (
-    <div className="site">
+    <div className={`site ${overHero ? 'site--hero' : ''}`}>
       <a className="skip" href="#main">Skip to content</a>
-      <header className="masthead">
+      <header className={`masthead ${overHero && !scrolled && !open ? 'masthead--clear' : ''}`}>
         <div className="wrap masthead__row">
           <Link to="/" className="masthead__brand" aria-label="CivicPulse AI home"><Logo /></Link>
           <nav className={`masthead__nav ${open ? 'is-open' : ''}`} aria-label="Main">
@@ -23,7 +31,7 @@ export function PublicLayout() {
             <Link to="/report" className="btn btn--signal btn--sm masthead__cta-mobile">Report an issue</Link>
           </nav>
           <div className="masthead__actions">
-            <Link to="/report" className="btn btn--signal btn--sm">Report an issue</Link>
+            <Link to="/report" className="btn btn--civic btn--sm">Report an issue</Link>
             <button className="btn btn--quiet masthead__toggle" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen(!open)}>
               {open ? <X /> : <Menu />}
             </button>
@@ -34,7 +42,7 @@ export function PublicLayout() {
       <footer className="footer">
         <div className="wrap footer__grid">
           <div>
-            <Logo light />
+            <Logo />
             <p className="footer__lede">From scattered complaints to prioritised, explainable, trackable civic action.</p>
           </div>
           <div>
@@ -52,8 +60,8 @@ export function PublicLayout() {
           <div className="footer__honest">
             <h4 className="eyebrow">Honesty note</h4>
             <p>Hackathon prototype. "Demo City" uses fictional wards and synthetic reports placed on Mangaluru coordinates.
-              Analysis is done by documented, deterministic algorithms — not a trained model or external AI service.
-              No government system, dispatch service or identity verification is connected.</p>
+              Analysis is done by documented, deterministic algorithms, not a trained model or external AI service.
+              No government system, dispatch service or identity verification is connected. The city image is a generated illustration.</p>
           </div>
         </div>
         <div className="wrap footer__base">

@@ -42,46 +42,36 @@ export function Landing() {
   return (
     <div className="landing">
       {/* ---------------- HERO ---------------- */}
-      <section className="hero wrap">
-        <div className="hero__copy">
+      <section className="hero">
+        <img className="hero__img" src="/img/hero-city.jpg" srcSet="/img/hero-city-sm.jpg 1200w, /img/hero-city.jpg 2400w" sizes="100vw" alt="" fetchPriority="high" />
+        <div className="hero__shade" aria-hidden />
+        <div className="wrap hero__content">
           <div className="hero__kicker">
-            <span className="eyebrow">Civic intelligence · {s?.demo_area.name ?? 'Demo City'}</span>
-            <LiveIndicator />
+            <span className="eyebrow eyebrow--light">Civic intelligence · {s?.demo_area.name ?? 'Demo City'}</span>
+            <LiveIndicator light />
           </div>
-          <h1 className="hero__title serif">Every complaint<br />is a <em>signal</em>.</h1>
+          <h1 className="hero__title serif">Data. People.<br />Better Cities.</h1>
           <p className="hero__lede">
-            CivicPulse reads what citizens report, links the duplicates, scores what is dangerous, finds where problems
-            cluster — and shows everyone what happens next.
+            AI-powered civic intelligence for smarter, faster and more responsive cities. CivicPulse links duplicate
+            complaints, scores what is dangerous and shows everyone what happens next.
           </p>
           <div className="hero__ctas">
             <Link to="/report" className="btn btn--signal">Report an issue <ArrowRight /></Link>
-            <Link to="/command" className="btn btn--ghost">Explore city intelligence</Link>
+            <Link to="/command" className="btn btn--ghost btn--glass">Explore the platform</Link>
           </div>
-          <dl className="ledger">
+        </div>
+        <div className="hero__stats">
+          <dl className="wrap hero__statrow">
             {m ? (
               <>
-                <div><dt>Reports logged</dt><dd>{m.total}</dd></div>
-                <div><dt>Open now</dt><dd>{m.open}</dd></div>
-                <div className="is-signal"><dt>Critical, open</dt><dd>{m.critical_open}</dd></div>
-                <div><dt>Resolution rate</dt><dd>{Math.round(m.resolution_rate)}<small>%</small></dd></div>
+                <div><dd>{m.total}</dd><dt>Reports</dt></div>
+                <div><dd>{m.open}</dd><dt>Open</dt></div>
+                <div><dd className="is-signal">{m.critical_open}</dd><dt>Critical</dt></div>
+                <div><dd>{m.resolved}</dd><dt>Resolved · {Math.round(m.resolution_rate)}% rate</dt></div>
               </>
-            ) : stats.error ? <ErrorState error={stats.error} onRetry={stats.reload} /> : [0, 1, 2, 3].map((i) => <div key={i}><Skeleton h={54} /></div>)}
+            ) : stats.error ? <ErrorState error={stats.error} onRetry={stats.reload} /> : [0, 1, 2, 3].map((i) => <div key={i}><Skeleton h={52} /></div>)}
           </dl>
         </div>
-        <figure className="plate">
-          <div className="plate__frame">
-            {map.data && s ? <CityPlate reports={map.data} hotspots={s.hotspots} /> : <Skeleton h={520} />}
-          </div>
-          <figcaption className="plate__caption">
-            <span className="mono">Fig. 1</span> Every open report in {s?.demo_area.name ?? 'Demo City'}, coloured by priority.
-            Dashed rings are hotspots found by clustering — recalculated with each new report.
-            <span className="plate__legend">
-              <i style={{ background: 'var(--critical)' }} />Critical <i style={{ background: 'var(--high)' }} />High
-              <i style={{ background: 'var(--medium)' }} />Medium <i style={{ background: 'var(--low)' }} />Low
-              <i className="hollow" />Closed
-            </span>
-          </figcaption>
-        </figure>
       </section>
 
       {/* ---------------- PROBLEM ---------------- */}
@@ -166,6 +156,19 @@ export function Landing() {
           </div>
           <Link to="/command/hotspots" className="btn btn--ghost btn--sm">All hotspots <ArrowUpRight /></Link>
         </div>
+        <figure className="plate">
+          <div className="plate__frame">
+            {map.data && s ? <CityPlate reports={map.data} hotspots={s.hotspots} /> : <Skeleton h={420} />}
+          </div>
+          <figcaption className="plate__caption">
+            <span className="mono">Live map</span> Every open report, coloured by priority. Dashed rings are hotspots found by clustering, recalculated with each new report.
+            <span className="plate__legend">
+              <i style={{ background: 'var(--critical)' }} />Critical <i style={{ background: 'var(--high)' }} />High
+              <i style={{ background: 'var(--medium)' }} />Medium <i style={{ background: 'var(--low)' }} />Low
+              <i className="hollow" />Closed
+            </span>
+          </figcaption>
+        </figure>
         <div className="pulse__grid">
           <div className="hotspot-list">
             {s ? s.hotspots.slice(0, 4).map((h, i) => (
@@ -239,13 +242,15 @@ export function Landing() {
 
       {/* ---------------- CTA ---------------- */}
       <section className="cta">
+        <img className="cta__img" src="/img/hero-city-sm.jpg" alt="" loading="lazy" />
+        <div className="cta__shade" aria-hidden />
         <div className="wrap cta__inner">
           <h2 className="serif cta__title">Seen something broken?<br /><em>Tell the city.</em></h2>
           <div className="cta__side">
             <p>Two minutes, no account. You’ll get an ID and see every step the ward office takes.</p>
             <div className="hero__ctas">
               <Link to="/report" className="btn btn--signal">Report an issue <ArrowRight /></Link>
-              <Link to="/track" className="btn btn--ghost btn--on-dark"><GitMerge />Track a report</Link>
+              <Link to="/track" className="btn btn--ghost btn--glass"><GitMerge />Track a report</Link>
             </div>
           </div>
         </div>

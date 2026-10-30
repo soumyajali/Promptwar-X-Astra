@@ -2,7 +2,7 @@ import { ArrowRight, Camera, Check, CircleAlert, Copy, Crosshair, ImagePlus, Loa
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { CityMap } from '../components/CityMap'
-import { CategoryTag, PriorityBadge, ScoreBreakdown, StatusPill } from '../components/ui'
+import { CategoryTag, PageBanner, PriorityBadge, ScoreBreakdown, StatusPill } from '../components/ui'
 import { ApiError, api } from '../lib/api'
 import { CATEGORY_KEYS, CATEGORY_META, DEMO_EXAMPLE } from '../lib/constants'
 import { distance, pct } from '../lib/format'
@@ -107,14 +107,12 @@ export function Report() {
   }} />
 
   return (
+    <>
+    <PageBanner eyebrow="Capture · Citizen report" title="Report an issue">
+      <p className="banner__lede">No account needed. Describe what you see, pin where it is, add a photo if you can. You’ll get a tracking ID straight away.</p>
+      <button type="button" className="btn btn--ghost btn--glass btn--sm" onClick={fillDemo}><Sparkles />Fill with demo example</button>
+    </PageBanner>
     <div className="report wrap">
-      <header className="page-head">
-        <span className="eyebrow">Capture · Citizen report</span>
-        <h1 className="serif display-1">Report an issue</h1>
-        <p className="page-head__lede">No account needed. Describe what you see, pin where it is, add a photo if you can. You’ll get a tracking ID straight away.</p>
-        <button type="button" className="btn btn--quiet btn--sm demo-fill" onClick={fillDemo}><Sparkles />Fill with demo example</button>
-      </header>
-
       <form className="report__grid" onSubmit={submit} noValidate>
         <div className="report__form">
           {/* 1 */}
@@ -252,6 +250,7 @@ export function Report() {
         </aside>
       </form>
     </div>
+    </>
   )
 }
 

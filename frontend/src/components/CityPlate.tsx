@@ -5,14 +5,24 @@ import { useMemo } from 'react'
 import type { PublicReport, PublicStats } from '../lib/types'
 import { LEVEL_COLOR } from '../lib/constants'
 
-const B = { latMin: 12.851, latMax: 12.89, lngMin: 74.826, lngMax: 74.861 }
-const W = 640
-const H = 640
+// Wide panoramic plate. Bounds are derived from the aspect ratio so geography is not stretched:
+// ~4.9 km north–south, and the matching east–west span at Demo City's latitude.
+const W = 1280
+const H = 560
+const LAT_C = 12.8705
+const LNG_C = 74.8425
+const LAT_SPAN = 0.044
+const KM_LAT = 111.0
+const KM_LNG = 108.5
+const LNG_SPAN = (LAT_SPAN * KM_LAT * (W / H)) / KM_LNG
+const B = { latMin: LAT_C - LAT_SPAN / 2, latMax: LAT_C + LAT_SPAN / 2, lngMin: LNG_C - LNG_SPAN / 2, lngMax: LNG_C + LNG_SPAN / 2 }
+const M_PER_PX = (LNG_SPAN * KM_LNG * 1000) / W
 
 const project = (lat: number, lng: number) => ({
   x: ((lng - B.lngMin) / (B.lngMax - B.lngMin)) * W,
   y: (1 - (lat - B.latMin) / (B.latMax - B.latMin)) * H,
 })
+const COAST = project(LAT_C, 74.8195).x
 
 // Deterministic pseudo-random for the street grid
 function rand(seed: number) {
@@ -26,13 +36,12 @@ export function CityPlate({ reports, hotspots }: { reports: PublicReport[]; hots
   const streets = useMemo(() => {
     const r = rand(7)
     const lines: string[] = []
-    for (let i = 0; i < 26; i++) {
-      const y = 30 + i * 24 + r() * 8
-      const x1 = 90 + r() * 60
-      lines.push(`M${x1} ${y} L${W} ${y + (r() - .5) * 30}`)
+    for (let i = 0; i < 24; i++) {
+      const y = 12 + i * 23 + r() * 8
+      lines.push(`M${COAST - 10 + r() * 30} ${y} L${W} ${y + (r() - .5) * 30}`)
     }
-    for (let i = 0; i < 22; i++) {
-      const x = 120 + i * 24 + r() * 10
+    for (let i = 0; COAST + 20 + i * 26 < W; i++) {
+      const x = COAST + 20 + i * 26 + r() * 10
       lines.push(`M${x} 0 L${x + (r() - .5) * 40} ${H}`)
     }
     return lines
@@ -47,28 +56,27 @@ export function CityPlate({ reports, hotspots }: { reports: PublicReport[]; hots
       aria-label={`Map plate of the demo city showing ${open.length} open reports and ${hotspots.length} detected hotspots`}>
       <defs>
         <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
-          <line x1="0" y1="0" x2="0" y2="6" stroke="#B4AB97" strokeWidth="1" />
+          <line x1="0" y1="0" x2="0" y2="6" stroke="#22332B" strokeWidth="1" />
         </pattern>
-        <clipPath id="land"><path d="M95 0 C 70 120, 120 210, 88 330 C 62 430, 110 520, 96 640 L640 640 L640 0 Z" /></clipPath>
+        <clipPath id="land"><path d={`M${COAST} 0 C ${COAST - 30} ${H * .2}, ${COAST + 24} ${H * .4}, ${COAST - 8} ${H * .6} C ${COAST - 36} ${H * .78}, ${COAST + 10} ${H * .9}, ${COAST} ${H} L${W} ${H} L${W} 0 Z`} /></clipPath>
       </defs>
       {/* sea */}
-      <rect width={W} height={H} fill="#E3DDCF" />
+      <rect width={W} height={H} fill="#0B1411" />
       <rect width={W} height={H} fill="url(#hatch)" opacity=".55" />
       {/* land */}
-      <path d="M95 0 C 70 120, 120 210, 88 330 C 62 430, 110 520, 96 640 L640 640 L640 0 Z" fill="#F4F0E7" />
-      <g clipPath="url(#land)" stroke="#D4CBB8" strokeWidth="1" fill="none">
+      <path d={`M${COAST} 0 C ${COAST - 30} ${H * .2}, ${COAST + 24} ${H * .4}, ${COAST - 8} ${H * .6} C ${COAST - 36} ${H * .78}, ${COAST + 10} ${H * .9}, ${COAST} ${H} L${W} ${H} L${W} 0 Z`} fill="#16251F" />
+      <g clipPath="url(#land)" stroke="#24372E" strokeWidth="1" fill="none">
         {streets.map((d, i) => <path key={i} d={d} />)}
       </g>
       {/* arterial roads */}
-      <g fill="none" stroke="#13201B" strokeLinecap="round">
-        <path d="M110 420 C 260 400, 330 330, 640 300" strokeWidth="3" opacity=".75" />
-        <path d="M300 0 C 320 160, 380 300, 420 640" strokeWidth="3" opacity=".75" />
-        <path d="M140 120 C 300 160, 470 120, 640 160" strokeWidth="1.6" opacity=".5" />
-        <path d="M120 560 C 300 520, 520 560, 640 520" strokeWidth="1.6" opacity=".5" />
+      <g fill="none" stroke="#8E9C94" strokeLinecap="round">
+        <path d={`M${COAST} ${H * .66} C ${W * .45} ${H * .62}, ${W * .55} ${H * .5}, ${W} ${H * .46}`} strokeWidth="3" opacity=".75" />
+        <path d={`M${W * .5} 0 C ${W * .51} ${H * .3}, ${W * .54} ${H * .55}, ${W * .57} ${H}`} strokeWidth="3" opacity=".75" />
+        <path d={`M${COAST + 30} ${H * .2} C ${W * .5} ${H * .26}, ${W * .7} ${H * .18}, ${W} ${H * .24}`} strokeWidth="1.6" opacity=".5" />
       </g>
       {/* river */}
-      <path d="M96 610 C 220 585, 330 640, 640 600" fill="none" stroke="#8FA9B8" strokeWidth="10" opacity=".55" />
-      <text x="24" y="40" className="plate__sea">ARABIAN SEA</text>
+      <path d={`M${COAST} ${H * .95} C ${W * .45} ${H * .9}, ${W * .7} ${H}, ${W} ${H * .93}`} fill="none" stroke="#3E5E6A" strokeWidth="10" opacity=".8" />
+      <text x={COAST / 2} y="40" className="plate__sea">ARABIAN SEA</text>
 
       {/* hotspots */}
       {hotspots.map((h, i) => {
@@ -88,10 +96,10 @@ export function CityPlate({ reports, hotspots }: { reports: PublicReport[]; hots
         const ty = clash ? ay + 10 : ay - 30
         return (
           <g key={h.id}>
-            <circle cx={p.x} cy={p.y} r={r} fill="#C8441A" fillOpacity=".08" stroke="#C8441A" strokeWidth="1.3" strokeDasharray="4 4" />
-            <line x1={ax} y1={ay} x2={ax + sx * 18} y2={ay + sy * 18} stroke="#13201B" strokeWidth="1" />
+            <circle cx={p.x} cy={p.y} r={r} fill="#E57B56" fillOpacity=".08" stroke="#E57B56" strokeWidth="1.3" strokeDasharray="4 4" />
+            <line x1={ax} y1={ay} x2={ax + sx * 18} y2={ay + sy * 18} stroke="#ECE8DC" strokeWidth="1" />
             <g transform={`translate(${tx} ${ty})`}>
-              <rect width={w} height="22" rx="2" fill="#13201B" />
+              <rect width={w} height="22" rx="3" fill="#E4E1D1" />
               <text x="8" y="15" className="plate__tag">{label}</text>
             </g>
           </g>
@@ -103,24 +111,24 @@ export function CityPlate({ reports, hotspots }: { reports: PublicReport[]; hots
         const { x, y } = project(p.lat!, p.lng!)
         const closed = p.status === 'resolved' || p.status === 'rejected'
         return closed
-          ? <circle key={p.id} cx={x} cy={y} r="3.2" fill="none" stroke="#646F69" strokeWidth="1.2" />
-          : <circle key={p.id} cx={x} cy={y} r={p.priority_level === 'critical' ? 6.5 : 5} fill={LEVEL_COLOR[p.priority_level]} stroke="#FAF8F3" strokeWidth="1.5" />
+          ? <circle key={p.id} cx={x} cy={y} r="3.2" fill="none" stroke="#5E6C64" strokeWidth="1.2" />
+          : <circle key={p.id} cx={x} cy={y} r={p.priority_level === 'critical' ? 6.5 : 5} fill={LEVEL_COLOR[p.priority_level]} stroke="#0E1814" strokeWidth="1.5" />
       })}
       {newest && (() => {
         const { x, y } = project(newest.lat!, newest.lng!)
-        return <circle cx={x} cy={y} r="10" fill="none" stroke="#C8441A" strokeWidth="1.5" className="plate__pulse" />
+        return <circle cx={x} cy={y} r="10" fill="none" stroke="#E4E1D1" strokeWidth="1.5" className="plate__pulse" />
       })()}
 
       {/* frame & scale */}
-      <g transform={`translate(${W - 150} ${H - 34})`} className="plate__scale">
-        <line x1="0" y1="0" x2="100" y2="0" stroke="#13201B" strokeWidth="2" />
-        <line x1="0" y1="-5" x2="0" y2="5" stroke="#13201B" />
-        <line x1="50" y1="-4" x2="50" y2="4" stroke="#13201B" />
-        <line x1="100" y1="-5" x2="100" y2="5" stroke="#13201B" />
-        <text x="0" y="18">0</text><text x="78" y="18">~600 m</text>
+      <g transform={`translate(${W - 60 - 1000 / M_PER_PX} ${H - 34})`} className="plate__scale">
+        <line x1="0" y1="0" x2={1000 / M_PER_PX} y2="0" stroke="#ECE8DC" strokeWidth="2" />
+        <line x1="0" y1="-5" x2="0" y2="5" stroke="#ECE8DC" />
+        <line x1={500 / M_PER_PX} y1="-4" x2={500 / M_PER_PX} y2="4" stroke="#ECE8DC" />
+        <line x1={1000 / M_PER_PX} y1="-5" x2={1000 / M_PER_PX} y2="5" stroke="#ECE8DC" />
+        <text x="0" y="18">0</text><text x={1000 / M_PER_PX - 22} y="18">1 km</text>
       </g>
       <g transform={`translate(${W - 40} 46)`}>
-        <path d="M0 -18 L6 6 L0 2 L-6 6 Z" fill="#13201B" />
+        <path d="M0 -18 L6 6 L0 2 L-6 6 Z" fill="#ECE8DC" />
         <text x="-4" y="22" className="plate__n">N</text>
       </g>
     </svg>

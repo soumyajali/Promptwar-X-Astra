@@ -2,7 +2,7 @@ import { ArrowRight, Building2, CalendarDays, CheckCircle2, MapPin, Search } fro
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { CityMap } from '../components/CityMap'
-import { CategoryTag, ErrorState, LiveIndicator, PriorityBadge, ScoreBreakdown, Skeleton, StatusPill, Timeline } from '../components/ui'
+import { CategoryTag, ErrorState, LiveIndicator, PageBanner, PriorityBadge, ScoreBreakdown, Skeleton, StatusPill, Timeline } from '../components/ui'
 import { ApiError, api } from '../lib/api'
 import { fmtDate, fmtDay, STATUS_LABEL } from '../lib/format'
 import type { Status, TrackView } from '../lib/types'
@@ -25,21 +25,21 @@ export function Track() {
   }
 
   return (
+    <>
+    <PageBanner eyebrow="Act · Citizen tracking" title="Track a report">
+      <form className="track__search" onSubmit={go} role="search">
+        <label htmlFor="tid" className="sr-only">Complaint ID</label>
+        <input id="tid" className="input mono" value={q} onChange={(e) => setQ(e.target.value)} placeholder="CP-XXXXXX" autoComplete="off" aria-invalid={!!err} />
+        <button className="btn btn--signal"><Search />Track</button>
+      </form>
+      {err && <p className="error">{err}</p>}
+    </PageBanner>
     <div className="track wrap">
-      <header className="page-head">
-        <span className="eyebrow">Act · Citizen tracking</span>
-        <h1 className="serif display-1">Track a report</h1>
-        <form className="track__search" onSubmit={go} role="search">
-          <label htmlFor="tid" className="sr-only">Complaint ID</label>
-          <input id="tid" className="input mono" value={q} onChange={(e) => setQ(e.target.value)} placeholder="CP-XXXXXX" autoComplete="off" aria-invalid={!!err} />
-          <button className="btn btn--civic"><Search />Track</button>
-        </form>
-        {err && <p className="error">{err}</p>}
-      </header>
       {id ? <TrackDetail id={id} /> : (
-        <p className="muted">Enter the ID you received after reporting. Don’t have one? <Link to="/report">Report an issue</Link>.</p>
+        <p className="muted track__empty">Enter the ID you received after reporting. Don’t have one? <Link to="/report">Report an issue</Link>.</p>
       )}
     </div>
+    </>
   )
 }
 

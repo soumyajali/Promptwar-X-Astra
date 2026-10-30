@@ -18,22 +18,22 @@ export const CATEGORY_META: Record<CategoryKey, { label: string; short: string; 
 export const CATEGORY_KEYS = Object.keys(CATEGORY_META) as CategoryKey[]
 
 export const LEVEL_COLOR: Record<Level, string> = {
-  critical: '#C8441A',
-  high: '#B57A12',
-  medium: '#3D5F7D',
-  low: '#5D7D62',
+  critical: '#E57B56',
+  high: '#D8AA52',
+  medium: '#86AACB',
+  low: '#94BC9C',
 }
 
 export const CHART = {
-  ink: '#13201B',
-  muted: '#67726C',
-  rule: '#D6CEBD',
-  civic: '#1D4A3C',
-  signal: '#C8441A',
-  ochre: '#B57A12',
-  slate: '#3D5F7D',
-  sage: '#5D7D62',
-  paper: '#F2EEE5',
+  ink: '#ECE8DC',
+  muted: '#8E9C94',
+  rule: '#2C3D35',
+  civic: '#93C3A5',
+  signal: '#E57B56',
+  ochre: '#D8AA52',
+  slate: '#86AACB',
+  sage: '#94BC9C',
+  paper: '#0E1814',
 }
 
 export const DEMO_EXAMPLE = {

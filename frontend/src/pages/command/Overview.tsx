@@ -9,7 +9,7 @@ import { CHART, LEVEL_COLOR } from '../../lib/constants'
 import { fmtHours } from '../../lib/format'
 import { useLiveQuery } from '../../store/live'
 
-export const tooltipStyle = { background: '#FAF8F3', border: '1px solid #D6CEBD', borderRadius: 8, fontSize: 13 }
+export const tooltipStyle = { background: '#1D2F27', border: '1px solid rgba(236,232,220,.22)', borderRadius: 8, fontSize: 13, color: '#ECE8DC' }
 
 export function Overview() {
   const dash = useLiveQuery(() => api.dashboard())
@@ -105,7 +105,7 @@ export function Overview() {
                 <BarChart data={d.distributions.category} layout="vertical" margin={{ top: 0, right: 16, left: 8, bottom: 0 }} barGap={-14}>
                   <XAxis type="number" hide allowDecimals={false} />
                   <YAxis type="category" dataKey="label" width={150} tick={{ fontSize: 12, fill: CHART.ink }} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(0,0,0,.03)' }} />
+                  <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(236,232,220,.05)' }} />
                   <Bar dataKey="total" name="Total" fill={CHART.rule} barSize={14} radius={2} />
                   <Bar dataKey="open" name="Open" fill={CHART.ink} barSize={14} radius={2} />
                 </BarChart>
@@ -121,7 +121,7 @@ export function Overview() {
                 <BarChart data={d.workload} layout="vertical" margin={{ top: 0, right: 16, left: 8, bottom: 0 }}>
                   <XAxis type="number" hide allowDecimals={false} />
                   <YAxis type="category" dataKey="label" width={170} tick={{ fontSize: 12, fill: CHART.ink }} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(0,0,0,.03)' }} />
+                  <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(236,232,220,.05)' }} />
                   <Bar dataKey="open" name="Open" barSize={14} radius={2}>
                     {d.workload.map((w) => <Cell key={w.key} fill={w.critical ? CHART.signal : CHART.civic} />)}
                   </Bar>
@@ -129,7 +129,7 @@ export function Overview() {
               </ResponsiveContainer>
             </div>
           ) : <Skeleton h={260} />}
-          <p className="panel__note">Bars in vermilion hold at least one critical report.</p>
+          <p className="panel__note">Coral bars hold at least one critical report.</p>
         </Panel>
 
         <Panel title="Insights" note="Derived from the figures above" className="span-5">

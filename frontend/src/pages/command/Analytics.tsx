@@ -39,7 +39,7 @@ export function Analytics() {
                 <CartesianGrid stroke={CHART.rule} strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="label" tick={{ fontSize: 11, fill: CHART.muted }} interval={3} tickLine={false} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: CHART.muted }} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(0,0,0,.03)' }} />
+                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(236,232,220,.05)' }} />
                 <Bar dataKey="received" name="Received" fill={CHART.signal} radius={[2, 2, 0, 0]} />
                 <Bar dataKey="resolved" name="Resolved" fill={CHART.civic} radius={[2, 2, 0, 0]} />
               </BarChart>
@@ -65,7 +65,7 @@ export function Analytics() {
               <BarChart data={status} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
                 <XAxis type="number" hide allowDecimals={false} />
                 <YAxis type="category" dataKey="label" width={100} tick={{ fontSize: 12, fill: CHART.ink }} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(0,0,0,.03)' }} />
+                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(236,232,220,.05)' }} />
                 <Bar dataKey="count" name="Reports" barSize={14} radius={2}>{status.map((s) => <Cell key={s.key} fill={STATUS_COLOR[s.key]} />)}</Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -77,7 +77,7 @@ export function Analytics() {
               <BarChart data={d.distributions.ward} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
                 <XAxis type="number" hide allowDecimals={false} />
                 <YAxis type="category" dataKey="ward" width={110} tick={{ fontSize: 12, fill: CHART.ink }} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(0,0,0,.03)' }} />
+                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(236,232,220,.05)' }} />
                 <Bar dataKey="open" name="Open" fill={CHART.civic} barSize={14} radius={2} />
               </BarChart>
             </ResponsiveContainer>
@@ -89,7 +89,7 @@ export function Analytics() {
               <BarChart data={d.distributions.priority} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
                 <XAxis dataKey="label" tick={{ fontSize: 12, fill: CHART.ink }} tickLine={false} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: CHART.muted }} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(0,0,0,.03)' }} />
+                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(236,232,220,.05)' }} />
                 <Bar dataKey="count" name="Open" radius={[2, 2, 0, 0]}>{d.distributions.priority.map((p) => <Cell key={p.key} fill={LEVEL_COLOR[p.key]} />)}</Bar>
               </BarChart>
             </ResponsiveContainer>
