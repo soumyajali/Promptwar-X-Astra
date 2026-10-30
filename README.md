@@ -37,7 +37,9 @@ authentication or identity verification.
 | Authority | `/command/login` | `officer@civicpulse.demo` | `Officer@2026` | Priya Shetty · Ward Officer |
 | Authority | `/command/login` | `engineer@civicpulse.demo` | `Engineer@2026` | Er. Anil Rao · Assistant Engineer, Road Maintenance |
 
-Citizens can also create their own account at `/account` (name, email, password ≥ 8 characters). Citizen accounts are
+Citizens can also create their own account at `/account` (name, email, password ≥ 8 characters). Ward-office staff
+can register at `/command/login` → **Register** or `/account?role=authority&mode=register` with a designation and the
+demo authority passcode `civic-demo` (`CIVICPULSE_AUTHORITY_CODE`); the passcode is shown on the page for the demo. Citizen accounts are
 refused by the authority sign-in and by every `/api/authority/*` endpoint (HTTP 403). Reporting without an account
 still works. For scripts and the API tests, the old shared header `X-Authority-Code: civic-demo` is still accepted
 (set `CIVICPULSE_AUTHORITY_CODE` to change it).
@@ -45,7 +47,7 @@ still works. For scripts and the API tests, the old shared header `X-Authority-C
 ## Features
 
 **Citizen accounts**
-- Register / sign in / sign out at `/account`; the header shows "Sign in" or "My reports"
+- Register / sign in / sign out at `/account`, with a Citizen / Ward Authority portal switch and demo-credential autofill; the header shows "Sign in / Register" or "My reports"
 - Citizen dashboard: their own complaints with status, priority, department, officer and the latest update; counts of open and resolved; live updates
 - Reports filed while signed in are linked to the account; each opens the tracking page
 
@@ -96,8 +98,12 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the data model, request flows and des
 
 ## AI methodology
 
-All intelligence is **deterministic and documented**. There is no trained model and no external LLM. Each output
-carries the evidence that produced it, and officers can correct it.
+The whole pipeline (classification, summary, duplicates, priority, hotspots, recommendations, briefs) is
+**deterministic and documented** — no trained model and no external AI service is involved. Each output carries the
+evidence that produced it, and officers can correct it. The one optional exception is the Command Center assistant:
+if `ANTHROPIC_API_KEY` is set, a language model may reword an answer the local engine has already computed; it never
+decides anything, replies containing figures not present in the computed answer are discarded, and each reply is
+labelled with the engine that produced it. Without a key (the default) nothing leaves the machine.
 
 **Classification** (`services/classifier.py`) — every category has a lexicon of weighted phrases (multi-word phrases
 weigh more). Scores are softmax-normalised (temperature 2) together with an "other" pseudo-class so weak evidence
@@ -210,17 +216,33 @@ The shipped app uses "The Observatory" (Concept 5) theme the team selected after
 - Thresholds and weights were tuned on the synthetic demo data, not real outcomes.
 - Photos are validated and stored but not analysed.
 - Wards are assigned from the nearest existing report (no ward polygons).
+- Anyone who reads the demo passcode on the sign-in page can register an authority account. In a real deployment staff
+  accounts would be issued by an administrator, not self-registered.
 - Sign-in is a demo: no email verification, password reset, rate limiting, CSRF protection or role administration.
   Sessions last 12 hours (`CIVICPULSE_SESSION_HOURS`); the token is kept in the browser's localStorage.
 - SSE broker is in-process: one backend instance. Clients fall back to 15-second polling if the stream drops.
 - Map tiles come from the public OpenStreetMap servers; offline, markers still render on a plain background.
 
+## Where the AI can be wrong
+
+- **Category:** unusual wording, Kannada/Hindi text or a report mixing two problems can be misclassified; below 45%
+  confidence the report is flagged for officer review, and the officer's correction is logged.
+- **Duplicates:** two different problems on the same street with similar words can be linked (false merge), and the
+  same problem described very differently can be missed. Links are suggestions shown with their score and reasons;
+  reports are never deleted.
+- **Priority:** the score reacts to words like "child", "live wire", "accident". An exaggerated report scores high and an
+  understated one scores low. Officers can override the level with a written reason.
+- **Hotspots:** DBSCAN needs at least 3 open reports within 350 m, so a sparse but real pattern is not shown, and a
+  busy junction can look like a hotspot just because more people pass by.
+- **Summaries:** extractive, so they repeat the citizen's words, including mistakes.
+
 ## Honesty statement
 
 - **Real and working:** report capture, image upload, persistence, every algorithm described above, the workflow,
   live sync, map, hotspots, dashboard, briefs, assistant, tests.
-- **Deterministic AI:** all "AI" is documented rule-based NLP, TF-IDF similarity, weighted scoring and DBSCAN clustering.
-  No trained model, no LLM, no external AI API.
+- **Deterministic AI:** all analysis is documented rule-based NLP, TF-IDF similarity, weighted scoring and DBSCAN
+  clustering. No trained model. The only external AI is optional: with `ANTHROPIC_API_KEY` set, a language model may
+  reword the assistant's already-computed answers (labelled in the UI); it is off by default.
 - **Simulated:** "Demo City" — fictional wards, streets, people and complaints placed on Mangaluru coordinates; officer
   names are invented; citizen and authority accounts are demo accounts without identity verification; the city hero image is a generated illustration.
 - **Not claimed:** government integration, emergency dispatch, verified citizen identities, real municipal data or
