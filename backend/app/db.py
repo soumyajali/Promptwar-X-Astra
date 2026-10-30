@@ -115,6 +115,11 @@ def _migrate(conn: sqlite3.Connection) -> None:
         for name, kind in cols.items():
             if name not in have:
                 conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {kind}")
+    # Indexes for the per-citizen dashboard and session lookups/cleanup.
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_reports_citizen ON reports(citizen_id)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions(expires_at)")
+    conn.execute("PRAGMA synchronous = NORMAL")
     conn.commit()
 
 

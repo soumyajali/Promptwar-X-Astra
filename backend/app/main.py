@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -36,6 +37,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="CivicPulse AI", version="1.0.0", lifespan=lifespan)
+# Compress JSON and static responses (Starlette skips text/event-stream, so SSE stays live).
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 app.add_middleware(CORSMiddleware, allow_origins=config.ALLOWED_ORIGINS, allow_methods=["*"], allow_headers=["*"])
 
 
@@ -94,7 +97,15 @@ app.mount("/uploads", StaticFiles(directory=config.UPLOAD_DIR), name="uploads")
 
 # Serve the built frontend (single-process mode) when it exists.
 if config.FRONTEND_DIST.exists():
-    app.mount("/assets", StaticFiles(directory=config.FRONTEND_DIST / "assets"), name="assets")
+    class _ImmutableAssets(StaticFiles):
+        """Vite assets have content hashes in their names, so browsers may cache them for a year."""
+        async def get_response(self, path, scope):
+            resp = await super().get_response(path, scope)
+            if resp.status_code == 200:
+                resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+            return resp
+
+    app.mount("/assets", _ImmutableAssets(directory=config.FRONTEND_DIST / "assets"), name="assets")
 
     @app.get("/{path:path}", include_in_schema=False)
     def spa(path: str):
