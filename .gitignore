@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+.venv/
+venv/
+# builds
+dist/
+build/
+*.tsbuildinfo
+# python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+# runtime data (database + uploaded photos are recreated/seeded on start)
+backend/data/
+*.db
+*.db-wal
+*.db-shm
+# env & secrets
+.env
+.env.*
+!.env.example
+# logs, temp, editor, OS
+*.log
+logs/
+tmp/
+.cache/
+.DS_Store
+.vscode/
+.idea/
+coverage/
