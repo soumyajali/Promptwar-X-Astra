@@ -196,6 +196,29 @@ HTTPS tunnel; tapping the map always works.
 creation pipeline, validation, image checks, auth gate, assignment, status transitions, timeline visibility,
 category correction, priority override, dashboard arithmetic, privacy of the public feed, brief, assistant, reset).
 
+## Deploy (one web service)
+
+FastAPI serves the built React app and the API from one process, so the whole app is a single web service.
+The repository includes a `Dockerfile` (Node 22 builds the frontend, Python 3.12 runs `uvicorn` on `$PORT`).
+
+**Render (free tier):** push the repo to GitHub → Render → **New → Web Service** → connect the repo → Language
+**Docker** → instance **Free** → **Create**. No environment variables are required. Railway and Fly.io detect the same
+`Dockerfile`.
+
+**Any server with Docker:**
+```bash
+docker build -t civicpulse .
+docker run -p 8000:8000 -v civicpulse-data:/app/backend/data civicpulse
+```
+
+**Without Docker:** `cd frontend && npm ci && npm run build`, then `cd ../backend && pip install -r requirements.txt &&
+uvicorn app.main:app --host 0.0.0.0 --port 8000`.
+
+Notes: SQLite and uploaded photos live in `backend/data`. On hosts without a persistent disk (Render free tier) they
+are reset on every restart or redeploy, and the 46 demo reports and demo accounts are re-created automatically.
+Free instances sleep when idle, so open the link a minute before a demo. Optional settings are in
+`backend/.env.example`.
+
 ## Demo
 
 See [DEMO_GUIDE.md](DEMO_GUIDE.md) for the exact five-minute script. Short version: **Report an issue → Fill with demo
